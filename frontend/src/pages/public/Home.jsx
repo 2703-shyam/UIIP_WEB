@@ -20,7 +20,7 @@ export const Home = () => {
             <Link to="/register" className="btn btn-primary btn-lg">
               Report an Issue Now <ArrowRight size={18} />
             </Link>
-            <Link to="/about" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>
+            <Link to="/about" className="btn btn-outline btn-lg" style={{ color: '#0f0d0d', borderColor: 'rgba(255,255,255,0.3)' }}>
               Explore Platform
             </Link>
           </div>

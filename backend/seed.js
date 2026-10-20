@@ -8,27 +8,39 @@ const seedDatabase = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected for Seeding');
 
-    // Clear existing users
-    await User.deleteMany();
-    console.log('Cleared existing users');
+    const adminEmail = 'admin@uiip.com';
+    const adminPassword = 'Admin@123';
+    const demoPassword = 'password123';
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash('password123', salt);
-
-    const users = [
-      {
+    let adminUser = await User.findOne({ email: adminEmail });
+    if (!adminUser) {
+      const salt = await bcrypt.genSalt(10);
+      const adminPasswordHash = await bcrypt.hash(adminPassword, salt);
+      adminUser = await User.create({
         name: 'Admin User',
-        email: 'admin@uiip.com',
+        email: adminEmail,
         phone: '1111111111',
-        passwordHash,
+        passwordHash: adminPasswordHash,
         role: 'admin',
         department: 'Central Administration'
-      },
+      });
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      if (!(await bcrypt.compare(adminPassword, adminUser.passwordHash))) {
+        adminUser.passwordHash = await bcrypt.hash(adminPassword, salt);
+        await adminUser.save();
+      }
+      adminUser.role = 'admin';
+      await adminUser.save();
+    }
+
+    const demoPasswordHash = await bcrypt.hash(demoPassword, await bcrypt.genSalt(10));
+    const demoUsers = [
       {
         name: 'John Engineer',
         email: 'engineer@uiip.com',
         phone: '2222222222',
-        passwordHash,
+        passwordHash: demoPasswordHash,
         role: 'engineer',
         department: 'Water Supply',
         zone: 'North',
@@ -38,7 +50,7 @@ const seedDatabase = async () => {
         name: 'Jane Citizen',
         email: 'citizen@uiip.com',
         phone: '3333333333',
-        passwordHash,
+        passwordHash: demoPasswordHash,
         role: 'citizen',
         location: { latitude: 22.3072, longitude: 72.6266 },
         zone: 'North',
@@ -46,9 +58,16 @@ const seedDatabase = async () => {
       }
     ];
 
-    await User.insertMany(users);
-    console.log('Database successfully seeded with dummy users!');
-    console.log('Login passwords for all users are: password123');
+    for (const userData of demoUsers) {
+      const existing = await User.findOne({ email: userData.email });
+      if (!existing) {
+        await User.create(userData);
+      }
+    }
+
+    console.log('Database ensured with admin account and demo users!');
+    console.log(`Admin login: ${adminEmail} / ${adminPassword}`);
+    console.log(`Demo login password: ${demoPassword}`);
 
     process.exit();
   } catch (error) {

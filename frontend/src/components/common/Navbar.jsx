@@ -53,7 +53,7 @@ export const Navbar = () => {
               Sign In
             </Link>
             <Link to="/register" className="btn btn-primary btn-sm">
-              Get Started
+              Register
             </Link>
           </div>
         )}
