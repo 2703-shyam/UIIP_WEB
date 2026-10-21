@@ -41,3 +41,11 @@ curl -X POST -F "image=@test.jpg" http://localhost:8000/classify
 The service returns all model detections with pixel and normalized bounding boxes. The highest-confidence detection drives the routing suggestion. Detections below the configured `CONFIDENCE_THRESHOLD`, and images with no detections, are routed to the Master Admin queue for manual review. The YOLO prediction floor is kept below that threshold so low-confidence results can be reviewed.
 
 Priority bands use inclusive lower bounds and exclusive upper bounds (the last band includes 1.00): 0.60–<0.75 Low, 0.75–<0.90 Medium, and 0.90–1.00 High. These match the requested bands at two-decimal confidence display.
+
+## Sequence Of Commands that needs to be run Befroe staring teh service on a new device.
+cd .\ai-service\ 
+py -3.11 -m venv .venv 
+.\.venv\Scripts\Activate.ps1 
+python -m pip install --upgrade pip 
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
