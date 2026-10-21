@@ -1,0 +1,43 @@
+# Civic Issue Detection API
+
+A local FastAPI service that loads one Ultralytics YOLOv8 `.pt` model at startup, detects civic issues in uploaded images, and returns department and priority suggestions. It does not assign engineers or call external services.
+
+## Configure the model
+
+Set `MODEL_PATH` in `.env` to your weights file. Relative paths are resolved from this directory:
+
+```dotenv
+MODEL_PATH=weights/best.pt
+```
+
+Copy `.env.example` to `.env` for a local setup. The `.env` file is ignored by Git. You can also set `MODEL_PATH` in the process environment; that value takes precedence over `.env`.
+
+The configured model must expose class names covered by `CLASS_NAME_MAP`. The service prints the model's raw class names when it starts and fails fast if the path or class mapping is invalid.
+
+All service settings are in `config.py`, including the confidence threshold, priority bands, class aliases, department names, upload size/types, and CORS origins.
+
+## Install and run
+
+From this directory, install dependencies and start the service:
+
+```bash
+python -m pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+The model is loaded once during FastAPI startup. Configure `MODEL_PATH` and ensure that the referenced weights file exists before starting.
+
+## Endpoints
+
+- `GET http://localhost:8000/health` reports model readiness and raw model classes.
+- `POST http://localhost:8000/classify` accepts a multipart upload with field name `image`.
+
+Example request:
+
+```bash
+curl -X POST -F "image=@test.jpg" http://localhost:8000/classify
+```
+
+The service returns all model detections with pixel and normalized bounding boxes. The highest-confidence detection drives the routing suggestion. Detections below the configured `CONFIDENCE_THRESHOLD`, and images with no detections, are routed to the Master Admin queue for manual review. The YOLO prediction floor is kept below that threshold so low-confidence results can be reviewed.
+
+Priority bands use inclusive lower bounds and exclusive upper bounds (the last band includes 1.00): 0.60–<0.75 Low, 0.75–<0.90 Medium, and 0.90–1.00 High. These match the requested bands at two-decimal confidence display.
