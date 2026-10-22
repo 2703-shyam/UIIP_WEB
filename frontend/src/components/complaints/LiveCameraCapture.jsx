@@ -54,7 +54,7 @@ export const LiveCameraCapture = ({
     setCameraError(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError('Live camera is not supported in this browser. Please use the device camera fallback below.');
+      setCameraError('Live camera requires a secure page (HTTPS or localhost) and a browser that supports camera access. Use the device camera option below, or open this site over HTTPS.');
       return;
     }
 
@@ -71,12 +71,6 @@ export const LiveCameraCapture = ({
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(() => {});
-        };
-      }
       setCameraActive(true);
     } catch (err) {
       console.warn('Camera access failed:', err);
@@ -90,6 +84,28 @@ export const LiveCameraCapture = ({
       setCameraActive(false);
     }
   }, [facingMode, stopCamera]);
+
+  // The video element is rendered only after cameraActive becomes true. Attach
+  // the stream after that render, otherwise the stream can be lost on startup.
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!cameraActive || !video || !stream) return;
+
+    video.srcObject = stream;
+    const play = () => video.play().catch((err) => {
+      console.warn('Camera playback failed:', err);
+      setCameraError('The camera opened but video playback failed. Close the camera and try again.');
+      stopCamera();
+    });
+
+    if (video.readyState >= 1) play();
+    else video.onloadedmetadata = play;
+
+    return () => {
+      video.onloadedmetadata = null;
+    };
+  }, [cameraActive, stopCamera]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -115,7 +131,10 @@ export const LiveCameraCapture = ({
   const handleSnap = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    if (!video || !canvas || video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+      setCameraError('Camera is still starting. Wait for the live preview, then capture again.');
+      return;
+    }
 
     // Flash animation
     setFlashEffect(true);
@@ -173,6 +192,7 @@ export const LiveCameraCapture = ({
   const handleNativeCameraFallback = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
     const previewUrl = URL.createObjectURL(file);
     const reader = new FileReader();
