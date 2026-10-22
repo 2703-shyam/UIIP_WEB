@@ -2,13 +2,40 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '../common/StatusBadge';
 import { formatDate } from '../../utils/formatDate';
-import { MapPin, Calendar, ArrowRight } from 'lucide-react';
+import { MapPin, Calendar, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const ComplaintCard = ({ complaint, linkPrefix = '/citizen/complaints' }) => {
   const id = complaint._id || complaint.id;
+  const hasPhoto = complaint.images && complaint.images.length > 0;
+  const photoSrc = hasPhoto ? complaint.images[0] : null;
+  const isLive = complaint.aiDetection?.isLiveCaptured !== false;
+  const isResolved = complaint.status === 'Resolved';
 
   return (
     <div className="complaint-card">
+      {/* Top Evidence Photo Preview if Available */}
+      {photoSrc && (
+        <div className="complaint-card-image-box">
+          <img src={photoSrc} alt={complaint.issueType || 'Issue'} className="complaint-card-img" />
+          <div className="card-img-badges">
+            {isLive ? (
+              <span className="card-auth-pill card-auth-live" title="Authentic Live Camera Capture">
+                <ShieldCheck size={12} /> Live Capture
+              </span>
+            ) : (
+              <span className="card-auth-pill card-auth-upload">
+                Storage Upload
+              </span>
+            )}
+            {isResolved && (
+              <span className="card-auth-pill card-auth-resolved">
+                <CheckCircle2 size={12} /> Resolved
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="card-header">
         <span className="complaint-id">#{id.substring(0, 8)}</span>
         <StatusBadge status={complaint.status} type="status" />
@@ -40,7 +67,7 @@ export const ComplaintCard = ({ complaint, linkPrefix = '/citizen/complaints' })
 
       <div className="card-footer">
         <Link to={`${linkPrefix}/${id}`} className="btn btn-outline btn-sm btn-block">
-          View Details <ArrowRight size={14} />
+          {isResolved ? 'View Resolution Report' : 'Inspect Defect Details'} <ArrowRight size={14} />
         </Link>
       </div>
     </div>

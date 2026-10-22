@@ -2,17 +2,52 @@ const Complaint = require('../models/Complaint');
 const StatusHistory = require('../models/StatusHistory');
 const cloudinary = require('../config/cloudinary');
 
-const uploadImages = (files = []) => Promise.all(files.map((file) => new Promise((resolve, reject) => {
+const uploadImages = (files = []) => Promise.all(files.map((file) => new Promise((resolve) => {
+  // If Cloudinary credentials are not provided in environment, fall back to base64 data URI
+  const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
+                        process.env.CLOUDINARY_CLOUD_NAME !== 'your_cloud_name' &&
+                        process.env.CLOUDINARY_API_KEY;
+
+  if (!hasCloudinary) {
+    const base64 = file.buffer.toString('base64');
+    return resolve(`data:${file.mimetype || 'image/jpeg'};base64,${base64}`);
+  }
+
   cloudinary.uploader.upload_stream(
     { folder: 'uiip/complaints', resource_type: 'image' },
-    (error, result) => error ? reject(error) : resolve(result.secure_url)
+    (error, result) => {
+      if (error || !result?.secure_url) {
+        console.warn('Cloudinary upload warning, falling back to base64 data URI:', error?.message);
+        const base64 = file.buffer.toString('base64');
+        return resolve(`data:${file.mimetype || 'image/jpeg'};base64,${base64}`);
+      }
+      resolve(result.secure_url);
+    }
   ).end(file.buffer);
 })));
 
 const createComplaint = async (req, res, next) => {
   try {
-    const { issueType, description, locationName, latitude, longitude } = req.body;
-    const images = await uploadImages(req.files);
+    const { issueType, description, locationName, latitude, longitude, aiDetection } = req.body;
+    let parsedAiDetection = undefined;
+    if (aiDetection) {
+      try {
+        parsedAiDetection = typeof aiDetection === 'string' ? JSON.parse(aiDetection) : aiDetection;
+      } catch (e) {
+        console.warn('Could not parse aiDetection:', e.message);
+      }
+    }
+
+    let images = await uploadImages(req.files);
+    // Robust fallback: check req.body if req.files had no files
+    if ((!images || images.length === 0) && req.body.imageBase64) {
+      const b64 = req.body.imageBase64;
+      images = Array.isArray(b64) ? b64 : [b64];
+    } else if ((!images || images.length === 0) && req.body.images) {
+      const bImgs = req.body.images;
+      images = Array.isArray(bImgs) ? bImgs : [bImgs];
+    }
+
     const count = await Complaint.countDocuments();
     const currentYear = new Date().getFullYear();
     const complaintId = 'UIIP-' + currentYear + '-' + String(count + 1).padStart(6, '0');
@@ -23,6 +58,7 @@ const createComplaint = async (req, res, next) => {
       issueType,
       description,
       images,
+      aiDetection: parsedAiDetection,
       location: {
         latitude: latitude ? Number(latitude) : undefined,
         longitude: longitude ? Number(longitude) : undefined,
@@ -50,23 +86,29 @@ const getComplaints = async (req, res, next) => {
     } else if (req.user.role === 'engineer') {
       query.assignedEngineerId = req.user._id;
     }
-    const complaints = await Complaint.find(query).sort({ createdAt: -1 });
+    const complaints = await Complaint.find(query)
+      .populate('assignedEngineerId', 'name email department')
+      .populate('citizenId', 'name email')
+      .sort({ createdAt: -1 });
     res.json({ success: true, data: complaints });
   } catch (error) { next(error); }
 };
 
 const getComplaintById = async (req, res, next) => {
   try {
-    const complaint = await Complaint.findById(req.params.id).populate('assignedEngineerId', 'name');
+    const complaint = await Complaint.findById(req.params.id)
+      .populate('assignedEngineerId', 'name email department phone')
+      .populate('citizenId', 'name email phone')
+      .populate('verifiedBy', 'name email department');
     if (!complaint) {
       res.status(404);
       throw new Error('Complaint not found');
     }
-    if (req.user.role === 'citizen' && complaint.citizenId.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'citizen' && complaint.citizenId?._id?.toString() !== req.user._id.toString() && complaint.citizenId?.toString() !== req.user._id.toString()) {
       res.status(403);
       throw new Error('Not authorized to view this complaint');
     }
-    if (req.user.role === 'engineer' && complaint.assignedEngineerId?._id.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'engineer' && complaint.assignedEngineerId?._id?.toString() !== req.user._id.toString() && complaint.assignedEngineerId?.toString() !== req.user._id.toString()) {
       res.status(403);
       throw new Error('Not assigned to this complaint');
     }
@@ -149,9 +191,19 @@ const resolveComplaint = async (req, res, next) => {
     }
 
     const previousStatus = complaint.status;
+    let resolutionImages = await uploadImages(req.files);
+    if ((!resolutionImages || resolutionImages.length === 0) && req.body.resolutionImagesBase64) {
+      const b64 = req.body.resolutionImagesBase64;
+      resolutionImages = Array.isArray(b64) ? b64 : [b64];
+    } else if ((!resolutionImages || resolutionImages.length === 0) && req.body.resolutionImages) {
+      const bImgs = req.body.resolutionImages;
+      resolutionImages = Array.isArray(bImgs) ? bImgs : [bImgs];
+    }
+
     complaint.status = 'Resolved';
     complaint.resolutionDetails = req.body.resolutionDetails;
-    complaint.resolutionImages = await uploadImages(req.files);
+    complaint.resolutionImages = resolutionImages;
+    complaint.resolvedAt = Date.now();
     await complaint.save();
     await StatusHistory.create({
       complaintId: complaint._id,

@@ -9,6 +9,8 @@ import { Select } from '../../components/common/Select';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { ImagePreview } from '../../components/complaints/ImagePreview';
+import { EvidencePhotoViewer } from '../../components/complaints/EvidencePhotoViewer';
+import { ResolutionReportView } from '../../components/complaints/ResolutionReportView';
 import { PRIORITY_LEVELS, SEVERITY_LEVELS } from '../../constants/priority';
 
 export const VerifyComplaint = () => {
@@ -36,11 +38,16 @@ export const VerifyComplaint = () => {
       const compData = await complaintService.getComplaintById(id);
       setComplaint(compData);
 
-      if (compData.department) {
-        setFormData((prev) => ({ ...prev, department: compData.department }));
-      }
+      const resolvedDept = compData.department || compData.aiDetection?.suggestedDepartment || 'Roads & Public Works';
+      const resolvedPriority = compData.priority || compData.aiDetection?.priority || PRIORITY_LEVELS.MEDIUM;
 
-      const engList = await userService.getEngineers(compData.department || 'Roads & Public Works');
+      setFormData((prev) => ({
+        ...prev,
+        department: resolvedDept,
+        priority: resolvedPriority
+      }));
+
+      const engList = await userService.getEngineers(resolvedDept);
       setEngineers(engList || []);
     } catch (err) {
       setError('Failed to load complaint verification details.');
@@ -91,22 +98,27 @@ export const VerifyComplaint = () => {
       <p className="page-subtitle">Inspect citizen report, evaluate severity, set department & assign field engineer.</p>
 
       <div className="details-grid">
-        <div className="details-main card">
-          <h3>Submitted Issue Details</h3>
-          <p className="description-text">{complaint.description}</p>
+        <div className="details-main">
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <h3>Submitted Issue Description</h3>
+            <p className="description-text" style={{ fontSize: '1.05rem', lineHeight: 1.6 }}>
+              {complaint.description}
+            </p>
+          </div>
 
-          {complaint.images && complaint.images.length > 0 && (
-            <div className="evidence-section">
-              <h4>Citizen Evidence Photos</h4>
-              <ImagePreview images={complaint.images} />
-            </div>
-          )}
+          {/* Interactive Evidence Photo & Authenticity Verification Viewer */}
+          <EvidencePhotoViewer
+            images={complaint.images}
+            aiDetection={complaint.aiDetection}
+            issueType={complaint.issueType}
+            createdAt={complaint.createdAt}
+            title="Citizen Submitted Photo & Authenticity Verification"
+          />
 
-          {complaint.aiDetection && (
-            <div className="ai-box card" style={{ background: '#f8fafc', padding: '15px', marginTop: '15px' }}>
-              <h4>AI Assessment (YOLO Mock Data)</h4>
-              <p>Detected Object: <strong>{complaint.aiDetection.object || 'Pothole'}</strong></p>
-              <p>Suggested Severity: <strong>{complaint.aiDetection.severity || 'High'}</strong></p>
+          {/* If already resolved, show Engineer's Resolution Report */}
+          {complaint.status === 'Resolved' && (
+            <div style={{ marginTop: '20px' }}>
+              <ResolutionReportView complaint={complaint} />
             </div>
           )}
         </div>

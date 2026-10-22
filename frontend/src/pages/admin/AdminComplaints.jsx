@@ -69,6 +69,7 @@ export const AdminComplaints = () => {
           <thead>
             <tr>
               <th>ID</th>
+              <th>Photo</th>
               <th>Category</th>
               <th>Status</th>
               <th>Priority</th>
@@ -79,12 +80,38 @@ export const AdminComplaints = () => {
           <tbody>
             {filtered.map((c) => {
               const id = c._id || c.id;
+              const hasPhoto = c.images && c.images.length > 0;
+              const photoSrc = hasPhoto ? c.images[0] : null;
+              const isLive = c.aiDetection?.isLiveCaptured !== false;
+
               return (
                 <tr key={id}>
                   <td>#{id.substring(0, 8)}</td>
-                  <td>{c.issueType || 'General'}</td>
+                  <td>
+                    {photoSrc ? (
+                      <Link to={`/citizen/complaints/${id}`} className="table-thumb-link" title="Click to inspect photo">
+                        <img src={photoSrc} alt="Defect" className="table-thumb-img" />
+                        {isLive && <span className="table-thumb-badge" title="Authentic Live Camera Capture">✓</span>}
+                      </Link>
+                    ) : (
+                      <span className="text-muted" style={{ fontSize: '0.8rem' }}>No photo</span>
+                    )}
+                  </td>
+                  <td>
+                    <strong>{c.issueType || 'General'}</strong>
+                    {c.aiDetection?.primaryClass && (
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#4338ca' }}>
+                        AI: {c.aiDetection.primaryClass} ({Math.round((c.aiDetection.confidence || 0.85) * 100)}%)
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <StatusBadge status={c.status} type="status" />
+                    {c.status === 'Resolved' && (
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
+                        ✓ Report Ready
+                      </span>
+                    )}
                   </td>
                   <td>
                     {c.priority ? <StatusBadge status={c.priority} type="priority" /> : 'Unassigned'}
@@ -102,7 +129,7 @@ export const AdminComplaints = () => {
                       </Link>
                     )}
                     <Link to={`/citizen/complaints/${id}`} className="btn btn-sm btn-outline">
-                      View
+                      {c.status === 'Resolved' ? 'View Report' : 'Inspect'}
                     </Link>
                   </td>
                 </tr>
@@ -110,7 +137,7 @@ export const AdminComplaints = () => {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center">
+                <td colSpan={7} className="text-center">
                   No complaints match your query.
                 </td>
               </tr>

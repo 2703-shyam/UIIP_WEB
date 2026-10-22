@@ -4,7 +4,11 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
 export const complaintService = {
   // Citizen: create new complaint
   createComplaint: async (formData) => {
-    const response = await api.post(API_ENDPOINTS.COMPLAINTS.BASE, formData);
+    const response = await api.post(API_ENDPOINTS.COMPLAINTS.BASE, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data.data;
   },
 
@@ -43,7 +47,11 @@ export const complaintService = {
 
   // Engineer: resolve complaint
   resolveComplaint: async (id, formData) => {
-    const response = await api.post(API_ENDPOINTS.COMPLAINTS.RESOLVE(id), formData);
+    const response = await api.post(API_ENDPOINTS.COMPLAINTS.RESOLVE(id), formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data.data;
   },
 

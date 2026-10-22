@@ -1,0 +1,20 @@
+# Local configuration and secrets
+.env
+
+# Python environments and generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Logs and local editor files
+*.log
+.vscode/
+.idea/
+
+# Model artifacts are large; explicitly allow the production model location.
+!weights/
+!weights/best.pt
