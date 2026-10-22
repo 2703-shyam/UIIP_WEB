@@ -40,6 +40,7 @@ import { AssignEngineer } from '../pages/admin/AssignEngineer';
 import { AdminMap } from '../pages/admin/AdminMap';
 import { AdminNotices } from '../pages/admin/AdminNotices';
 import { CreateNotice } from '../pages/admin/CreateNotice';
+import { AdminEngineers } from '../pages/admin/AdminEngineers';
 
 export const AppRoutes = () => {
   return (
@@ -88,6 +89,7 @@ export const AppRoutes = () => {
             <Route path="/admin/map" element={<AdminMap />} />
             <Route path="/admin/notices" element={<AdminNotices />} />
             <Route path="/admin/notices/create" element={<CreateNotice />} />
+            <Route path="/admin/engineers" element={<AdminEngineers />} />
           </Route>
         </Route>
       </Route>

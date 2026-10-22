@@ -23,7 +23,8 @@ export const API_ENDPOINTS = {
     MARK_READ: (id) => `/notifications/${id}/read`
   },
   ENGINEERS: {
-    BASE: '/users/engineers'
+    BASE: '/users/engineers',
+    STATUS: (id) => `/users/engineers/${id}/status`
   },
   ANALYTICS: {
     SUMMARY: '/analytics/complaints',

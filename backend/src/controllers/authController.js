@@ -4,16 +4,17 @@ const bcrypt = require('bcryptjs');
 
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, phone, password, role = 'citizen', department, location, ward, zone } = req.body;
-    if (!['citizen', 'engineer'].includes(role)) {
+    const { name, email, phone, password, role = 'citizen', location, ward, zone } = req.body;
+    if (role !== 'citizen') {
       res.status(400);
-      throw new Error('Invalid registration role');
+      throw new Error('Engineer accounts must be created by an administrator');
     }
-    if (role === 'engineer' && !department) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    if (!name?.trim() || !normalizedEmail || !password || password.length < 6) {
       res.status(400);
-      throw new Error('Department is required for engineer accounts');
+      throw new Error('Name, valid email, and a password of at least 6 characters are required');
     }
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       res.status(400);
       throw new Error('User already exists');
@@ -22,11 +23,10 @@ const registerUser = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, salt);
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       phone,
       passwordHash,
       role,
-      department: role === 'engineer' ? department : undefined,
       location,
       ward,
       zone
@@ -50,7 +50,7 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email?.trim().toLowerCase() });
     if (user && (await user.matchPassword(password))) {
       if (!user.isActive) {
         res.status(401);

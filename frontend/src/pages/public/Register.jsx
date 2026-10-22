@@ -3,9 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import { Input } from '../../components/common/Input';
-import { Select } from '../../components/common/Select';
 import { Button } from '../../components/common/Button';
-import { ROLES, ROLE_LABELS } from '../../constants/roles';
+import { ROLES } from '../../constants/roles';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +12,6 @@ export const Register = () => {
     email: '',
     phone: '',
     role: ROLES.CITIZEN,
-    department: '',
     password: '',
     confirmPassword: '',
   });
@@ -66,7 +64,7 @@ export const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h2 className="auth-title">Create Account</h2>
-        <p className="auth-subtitle">Register to report issues or access official portals</p>
+        <p className="auth-subtitle">Create a citizen account to report and track local infrastructure issues.</p>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
@@ -99,35 +97,6 @@ export const Register = () => {
             placeholder="9876543210"
           />
 
-          <Select
-            label="Account Role"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            options={[
-              { value: ROLES.CITIZEN, label: ROLE_LABELS[ROLES.CITIZEN] },
-              { value: ROLES.ENGINEER, label: ROLE_LABELS[ROLES.ENGINEER] }
-            ]}
-            required
-          />
-
-          {formData.role === ROLES.ENGINEER && (
-            <Select
-              label="Department"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              options={[
-                'Roads & Public Works',
-                'Water Works & Sewage',
-                'Electrical & Streetlighting',
-                'Sanitation & Solid Waste',
-                'Horticulture & Parks'
-              ]}
-              required
-            />
-          )}
-
           <div className="form-row">
             <Input
               label="Password"
@@ -156,6 +125,7 @@ export const Register = () => {
         </form>
 
         <div className="auth-footer">
+          <p className="helper-text">Engineer accounts are created and managed by an administrator.</p>
           <p>
             Already have an account? <Link to="/login">Sign in</Link>
           </p>

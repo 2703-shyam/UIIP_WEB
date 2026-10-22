@@ -10,7 +10,8 @@ import {
   CheckSquare,
   History,
   MapPin,
-  Megaphone
+  Megaphone,
+  Users
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -60,7 +61,8 @@ export const Sidebar = () => {
             items: [
               { to: '/admin/dashboard', label: 'Operations Hub', icon: LayoutDashboard },
               { to: '/admin/complaints', label: 'Complaints Registry', icon: FileText },
-              { to: '/admin/map', label: 'Citywide GIS Map', icon: MapPin }
+              { to: '/admin/map', label: 'Citywide GIS Map', icon: MapPin },
+              { to: '/admin/engineers', label: 'Manage Engineers', icon: Users }
             ]
           },
           {
