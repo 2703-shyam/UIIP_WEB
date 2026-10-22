@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
-CanonicalClass = Literal["Pothole", "Garbage/Hygiene", "Waterlogging"]
+CanonicalClass = str
 Priority = Literal["Low", "Medium", "High"]
 
 

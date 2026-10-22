@@ -256,14 +256,16 @@ export const LiveCameraCapture = ({
                 </div>
                 {aiResult.primaryClass && (
                   <span className="ai-confidence-pill">
-                    {Math.round((aiResult.confidence || 0.85) * 100)}% Confidence
+                    {Math.round((aiResult.confidence ?? 0) * 100)}% Confidence
                   </span>
                 )}
               </div>
 
               <div className="ai-result-grid">
                 <div className="ai-result-item">
-                  <span className="result-label">Detected Issue:</span>
+                  <span className="result-label">
+                    {aiResult.needsManualReview ? 'Possible Detection (Review):' : 'Detected Issue:'}
+                  </span>
                   <span className="result-value issue-highlight">
                     {aiResult.primaryClass || 'Review Required'}
                   </span>
@@ -277,7 +279,7 @@ export const LiveCameraCapture = ({
                 <div className="ai-result-item">
                   <span className="result-label">Auto-Selected Category:</span>
                   <span className="result-value category-tag">
-                    {aiResult.mappedCategory || 'Manual Selection'}
+                    {!aiResult.needsManualReview && aiResult.mappedCategory ? aiResult.mappedCategory : 'Manual Selection'}
                   </span>
                 </div>
                 {aiResult.priority && (

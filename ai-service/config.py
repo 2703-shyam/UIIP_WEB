@@ -12,7 +12,7 @@ load_dotenv(SERVICE_DIR / ".env")
 # resolved from this service directory, so deployment does not depend on CWD.
 MODEL_PATH = os.getenv("MODEL_PATH", "weights/best.pt")
 
-CONFIDENCE_THRESHOLD = 0.6
+CONFIDENCE_THRESHOLD = 0.8
 
 # Lower bound is inclusive; upper bound is exclusive, except for the last band.
 # Thus these correspond to 0.60–0.74, 0.75–0.89, and 0.90–1.00 at 2 decimals.

@@ -35,39 +35,19 @@ class InferenceResult:
     inference_time_ms: float
 
 
-def _normalize_class_name(name: str) -> str:
-    """Normalize model class names for alias lookup."""
-    return "_".join(name.strip().lower().replace("-", " ").split())
-
-
 class YoloService:
     """Loads one YOLO model and runs serialized, thread-safe inference."""
 
     def __init__(self, model_path: Path | None = None) -> None:
         self.model_path = model_path or config.resolved_model_path()
-        self.is_mock = False
         self._inference_lock = Lock()
 
         # Check if the configured weights file exists
         if not self.model_path.is_file():
-            print("\n" + "=" * 65, flush=True)
-            print(" [AI-SERVICE NOTICE] Model weights file not found at:", flush=True)
-            print(f"   --> {self.model_path}", flush=True)
-            print(" Running in SIMULATION MODE so you can test live camera & UI.", flush=True)
-            print(" To use your trained model:", flush=True)
-            print("   1. Copy your 'best.pt' file into 'ai-service/weights/best.pt'", flush=True)
-            print("   2. Restart this server.", flush=True)
-            print("=" * 65 + "\n", flush=True)
-
-            self.is_mock = True
-            self.model_name = "civic_issue_detector_simulated.pt"
-            self.class_names = ["pothole", "garbage_dump", "waterlogging"]
-            self.class_map = {
-                0: "Pothole",
-                1: "Garbage/Hygiene",
-                2: "Waterlogging",
-            }
-            return
+            raise ModelConfigurationError(
+                f"YOLO weights file not found at {self.model_path}. "
+                "Set MODEL_PATH in ai-service/.env to your trained .pt file."
+            )
 
         if self.model_path.suffix.lower() != ".pt":
             raise ModelConfigurationError(
@@ -89,14 +69,11 @@ class YoloService:
         print(f"[AI-SERVICE] Loaded custom YOLO weights: {self.model_path.name}", flush=True)
         print(f"[AI-SERVICE] Model classes: {self.class_names}", flush=True)
 
-        self.class_map: dict[int, CanonicalClass] = {}
-        for class_id, raw_name in enumerate(self.class_names):
-            canonical = config.CLASS_NAME_MAP.get(_normalize_class_name(raw_name))
-            if canonical is None:
-                raise ModelConfigurationError(
-                    f"Model class {raw_name!r} has no entry in config.CLASS_NAME_MAP."
-                )
-            self.class_map[class_id] = canonical  # type: ignore[assignment]
+        # Preserve the labels supplied by the user's trained model. Civic aliases
+        # are applied only when a routing suggestion is constructed.
+        self.class_map: dict[int, CanonicalClass] = {
+            class_id: raw_name for class_id, raw_name in enumerate(self.class_names)
+        }
 
         self.model_name = self.model_path.name
 
@@ -111,38 +88,6 @@ class YoloService:
             raise InvalidImageError("Uploaded file is not a valid image.") from exc
 
         started = time.perf_counter()
-
-        if self.is_mock:
-            # Deterministic simulated detection for end-to-end frontend/camera testing
-            classes: list[CanonicalClass] = ["Pothole", "Garbage/Hygiene", "Waterlogging"]
-            idx = (len(image_bytes) // 100) % len(classes)
-            chosen_class = classes[idx]
-            mock_conf = min(0.96, 0.86 + ((len(image_bytes) % 10) * 0.01))
-
-            detections: list[Detection] = [
-                Detection(
-                    class_name=chosen_class,
-                    confidence=round(mock_conf, 2),
-                    bbox=BoundingBox(
-                        x1=width * 0.15,
-                        y1=height * 0.25,
-                        x2=width * 0.85,
-                        y2=height * 0.75,
-                    ),
-                    bbox_normalized=BoundingBox(
-                        x1=0.15,
-                        y1=0.25,
-                        x2=0.85,
-                        y2=0.75,
-                    ),
-                )
-            ]
-            elapsed_ms = (time.perf_counter() - started) * 1000.0 + 35.0
-            return InferenceResult(
-                detections=detections,
-                image_size=ImageSize(width=width, height=height),
-                inference_time_ms=elapsed_ms,
-            )
 
         try:
             with self._inference_lock:

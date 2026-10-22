@@ -64,7 +64,7 @@ export const ReportIssue = () => {
       const result = await aiService.classifyImage(file);
       setAiResult(result);
 
-      if (result.mappedCategory) {
+      if (result.mappedCategory && !result.needsManualReview) {
         setFormData((prev) => ({
           ...prev,
           issueType: result.mappedCategory
@@ -248,7 +248,7 @@ export const ReportIssue = () => {
         <div className="form-section category-selection-section">
           <div className="label-with-ai-badge">
             <label className="form-label">Step 2: Problem Type / Category *</label>
-            {aiResult?.mappedCategory && aiResult.mappedCategory === formData.issueType && (
+            {aiResult?.mappedCategory && !aiResult.needsManualReview && aiResult.mappedCategory === formData.issueType && (
               <span className="ai-autoselected-pill">
                 <Sparkles size={12} /> Auto-Selected by AI ({aiResult.primaryClass})
               </span>

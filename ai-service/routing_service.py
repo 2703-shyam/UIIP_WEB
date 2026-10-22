@@ -51,9 +51,8 @@ def build_classification_response(
             inference_time_ms=inference_time_ms,
         )
 
-    department = config.DEPARTMENT_MAP.get(primary.class_name)
-    if department is None:
-        raise RuntimeError(f"No department configured for {primary.class_name!r}.")
+    canonical = config.CLASS_NAME_MAP.get(primary.class_name.strip().lower().replace("-", " ").replace(" ", "_"), primary.class_name)
+    department = config.DEPARTMENT_MAP.get(canonical)
 
     priority = None
     for lower, upper, label in config.PRIORITY_BANDS:
@@ -75,7 +74,7 @@ def build_classification_response(
         suggested_department=department,
         priority=priority,
         needs_manual_review=False,
-        routed_to=department,
+        routed_to=department or primary.class_name,
         review_reason=None,
         detections=detections,
         image_size=image_size,
