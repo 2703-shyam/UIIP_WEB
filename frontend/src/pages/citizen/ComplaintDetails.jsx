@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { complaintService } from '../../services/complaintService';
+import { useAuth } from '../../hooks/useAuth';
 import { Loading } from '../../components/common/Loading';
 import { ErrorState } from '../../components/common/ErrorState';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { ComplaintTimeline } from '../../components/complaints/ComplaintTimeline';
-import { ImagePreview } from '../../components/complaints/ImagePreview';
+import { EvidencePhotoViewer } from '../../components/complaints/EvidencePhotoViewer';
+import { ResolutionReportView } from '../../components/complaints/ResolutionReportView';
 import { formatDate } from '../../utils/formatDate';
-import { ArrowLeft, MapPin, Calendar, User, Building } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, User, Building, ShieldCheck } from 'lucide-react';
 
 export const ComplaintDetails = () => {
   const { id } = useParams();
+  const { role } = useAuth();
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,10 +38,22 @@ export const ComplaintDetails = () => {
   if (loading) return <Loading message="Loading complaint details..." />;
   if (error || !complaint) return <ErrorState message={error || 'Complaint not found'} onRetry={fetchDetails} />;
 
+  // Dynamic back link based on user role
+  const backLink = role === 'admin' 
+    ? '/admin/complaints' 
+    : role === 'engineer' 
+      ? '/engineer/complaints' 
+      : '/citizen/complaints';
+  const backLabel = role === 'admin' 
+    ? 'Back to Admin Registry' 
+    : role === 'engineer' 
+      ? 'Back to Assigned Tasks' 
+      : 'Back to My Complaints';
+
   return (
     <div className="page-container">
-      <Link to="/citizen/complaints" className="back-link">
-        <ArrowLeft size={16} /> Back to Complaints
+      <Link to={backLink} className="back-link">
+        <ArrowLeft size={16} /> {backLabel}
       </Link>
 
       <div className="details-header">
@@ -53,26 +68,28 @@ export const ComplaintDetails = () => {
       </div>
 
       <div className="details-grid">
-        <div className="details-main card">
-          <h3>Issue Description</h3>
-          <p className="description-text">{complaint.description}</p>
+        <div className="details-main">
+          {/* Issue Description Card */}
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <h3>Reported Issue Description</h3>
+            <p className="description-text" style={{ fontSize: '1.05rem', lineHeight: 1.6 }}>
+              {complaint.description}
+            </p>
+          </div>
 
-          {complaint.images && complaint.images.length > 0 && (
-            <div className="evidence-section">
-              <h4>Submitted Evidence Images</h4>
-              <ImagePreview images={complaint.images} />
-            </div>
-          )}
+          {/* Citizen Evidence Photo & Authenticity Verification */}
+          <EvidencePhotoViewer
+            images={complaint.images}
+            aiDetection={complaint.aiDetection}
+            issueType={complaint.issueType}
+            createdAt={complaint.createdAt}
+            title="Citizen Submitted Evidence Photo"
+          />
 
-          {complaint.resolutionDetails && (
-            <div className="resolution-card">
-              <h4>Resolution Details</h4>
-              <p>{complaint.resolutionDetails}</p>
-              {complaint.resolutionImages && (
-                <ImagePreview images={complaint.resolutionImages} />
-              )}
-            </div>
-          )}
+          {/* Engineer's Resolution Report & Before/After Proof */}
+          <div style={{ marginTop: '20px' }}>
+            <ResolutionReportView complaint={complaint} />
+          </div>
         </div>
 
         <div className="details-sidebar card">

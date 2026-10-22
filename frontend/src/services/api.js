@@ -10,12 +10,16 @@ const api = axios.create({
   }
 });
 
-// Add auth token to requests
+// Add auth token to requests and handle multipart FormData
 api.interceptors.request.use(
   (config) => {
     const token = storage.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // Critical: When sending FormData, delete application/json so browser generates boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     return config;
   },

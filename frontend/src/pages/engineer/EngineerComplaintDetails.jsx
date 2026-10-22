@@ -6,7 +6,8 @@ import { Loading } from '../../components/common/Loading';
 import { ErrorState } from '../../components/common/ErrorState';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { Button } from '../../components/common/Button';
-import { ImagePreview } from '../../components/complaints/ImagePreview';
+import { EvidencePhotoViewer } from '../../components/complaints/EvidencePhotoViewer';
+import { ResolutionReportView } from '../../components/complaints/ResolutionReportView';
 import { formatDate } from '../../utils/formatDate';
 import { ArrowLeft, MapPin, Calendar, Wrench, CheckCircle } from 'lucide-react';
 
@@ -71,39 +72,58 @@ export const EngineerComplaintDetails = () => {
       </div>
 
       <div className="details-grid">
-        <div className="details-main card">
-          <h3>Issue Description & Evidence</h3>
-          <p className="description-text">{complaint.description}</p>
+        <div className="details-main">
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <h3>Issue Description & Work Order Scope</h3>
+            <p className="description-text" style={{ fontSize: '1.05rem', lineHeight: 1.6 }}>
+              {complaint.description}
+            </p>
+          </div>
 
-          {complaint.images && complaint.images.length > 0 && (
-            <div className="evidence-section">
-              <h4>Citizen Submitted Photos</h4>
-              <ImagePreview images={complaint.images} />
+          {/* Citizen Authentic Photo & Problem Identification */}
+          <EvidencePhotoViewer
+            images={complaint.images}
+            aiDetection={complaint.aiDetection}
+            issueType={complaint.issueType}
+            createdAt={complaint.createdAt}
+            title="Citizen Photo & Defect Identification"
+          />
+
+          {/* Action Panel for Active Tasks */}
+          {complaint.status !== 'Resolved' && (
+            <div className="engineer-action-panel card" style={{ marginTop: '20px', padding: '20px' }}>
+              <h4>Field Engineering Actions</h4>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '12px' }}>
+                {complaint.status === 'Assigned' && (
+                  <Button
+                    variant="primary"
+                    onClick={handleStartProgress}
+                    loading={updating}
+                    icon={Wrench}
+                  >
+                    Mark Work as In Progress
+                  </Button>
+                )}
+
+                {(complaint.status === 'In Progress' || complaint.status === 'Assigned') && (
+                  <Button
+                    variant="success"
+                    onClick={() => navigate(`/engineer/complaints/${id}/resolve`)}
+                    icon={CheckCircle}
+                  >
+                    Complete Work & Submit Resolution Report
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 
-          <div className="engineer-action-panel">
-            {complaint.status === 'Assigned' && (
-              <Button
-                variant="primary"
-                onClick={handleStartProgress}
-                loading={updating}
-                icon={Wrench}
-              >
-                Mark Work as In Progress
-              </Button>
-            )}
-
-            {(complaint.status === 'In Progress' || complaint.status === 'Assigned') && (
-              <Button
-                variant="success"
-                onClick={() => navigate(`/engineer/complaints/${id}/resolve`)}
-                icon={CheckCircle}
-              >
-                Resolve & Submit Resolution Report
-              </Button>
-            )}
-          </div>
+          {/* Resolution Report (if already completed) */}
+          {complaint.status === 'Resolved' && (
+            <div style={{ marginTop: '20px' }}>
+              <ResolutionReportView complaint={complaint} />
+            </div>
+          )}
         </div>
 
         <div className="details-sidebar card">
