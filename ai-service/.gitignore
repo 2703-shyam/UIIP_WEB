@@ -16,6 +16,5 @@ __pycache__/
 .idea/
 
 # Model artifacts are large; explicitly allow the production model location.
-*.pt
 !weights/
 !weights/best.pt
