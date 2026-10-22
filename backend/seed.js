@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('./src/models/User');
+const { DEPARTMENTS } = require('./src/constants/departments');
 
 const seedDatabase = async () => {
   try {
@@ -22,7 +23,7 @@ const seedDatabase = async () => {
         phone: '1111111111',
         passwordHash: adminPasswordHash,
         role: 'admin',
-        department: 'Central Administration'
+        department: null
       });
     } else {
       const salt = await bcrypt.genSalt(10);
@@ -31,6 +32,7 @@ const seedDatabase = async () => {
         await adminUser.save();
       }
       adminUser.role = 'admin';
+      adminUser.department = null;
       await adminUser.save();
     }
 
@@ -42,7 +44,7 @@ const seedDatabase = async () => {
         phone: '2222222222',
         passwordHash: demoPasswordHash,
         role: 'engineer',
-        department: 'Water Supply',
+        department: DEPARTMENTS[1],
         zone: 'North',
         ward: 'Ward 1'
       },
@@ -62,6 +64,9 @@ const seedDatabase = async () => {
       const existing = await User.findOne({ email: userData.email });
       if (!existing) {
         await User.create(userData);
+      } else if (userData.role === 'engineer' && existing.department !== userData.department) {
+        existing.department = userData.department;
+        await existing.save();
       }
     }
 

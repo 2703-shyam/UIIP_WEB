@@ -1,7 +1,12 @@
 const PublicNotice = require('../models/PublicNotice');
+const { DEPARTMENTS } = require('../constants/departments');
 
 const createNotice = async (req, res, next) => {
   try {
+    if (req.body.department && !DEPARTMENTS.includes(req.body.department)) {
+      res.status(400);
+      throw new Error(`Department must be one of: ${DEPARTMENTS.join(', ')}`);
+    }
     const noticeData = {
       ...req.body,
       status: 'Published',

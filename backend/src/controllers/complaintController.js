@@ -1,6 +1,7 @@
 const Complaint = require('../models/Complaint');
 const StatusHistory = require('../models/StatusHistory');
 const cloudinary = require('../config/cloudinary');
+const { DEPARTMENTS } = require('../constants/departments');
 
 const uploadImages = (files = []) => Promise.all(files.map((file) => new Promise((resolve) => {
   // If Cloudinary credentials are not provided in environment, fall back to base64 data URI
@@ -28,7 +29,7 @@ const uploadImages = (files = []) => Promise.all(files.map((file) => new Promise
 
 const createComplaint = async (req, res, next) => {
   try {
-    const { issueType, description, locationName, latitude, longitude, aiDetection } = req.body;
+    const { description, locationName, latitude, longitude, aiDetection } = req.body;
     let parsedAiDetection = undefined;
     if (aiDetection) {
       try {
@@ -55,7 +56,6 @@ const createComplaint = async (req, res, next) => {
     const complaint = await Complaint.create({
       complaintId,
       citizenId: req.user._id,
-      issueType,
       description,
       images,
       aiDetection: parsedAiDetection,
@@ -120,15 +120,18 @@ const getComplaintById = async (req, res, next) => {
 
 const verifyComplaint = async (req, res, next) => {
   try {
-    const { issueType, severity, priority, department } = req.body;
+    const { severity, priority, department } = req.body;
     const complaint = await Complaint.findById(req.params.id);
     if (!complaint) {
       res.status(404);
       throw new Error('Complaint not found');
     }
+    if (department && !DEPARTMENTS.includes(department)) {
+      res.status(400);
+      throw new Error(`Department must be one of: ${DEPARTMENTS.join(', ')}`);
+    }
     const previousStatus = complaint.status;
     complaint.status = 'Verified';
-    complaint.issueType = issueType || complaint.issueType;
     complaint.severity = severity || complaint.severity;
     complaint.priority = priority || complaint.priority;
     complaint.department = department || complaint.department;

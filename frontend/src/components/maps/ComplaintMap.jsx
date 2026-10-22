@@ -26,7 +26,7 @@ export const ComplaintMap = ({ complaints = [], center = [20.5937, 78.9629], zoo
               <Marker key={complaint._id || complaint.id} position={[lat, lng]} icon={defaultIcon}>
                 <Popup>
                   <div className="map-popup-content">
-                    <h4>{complaint.title || complaint.issueType || 'Infrastructure Issue'}</h4>
+                    <h4>{complaint.title || complaint.description?.slice(0, 90) || 'Infrastructure Issue'}</h4>
                     <p className="popup-id">ID: {complaint._id || complaint.id}</p>
                     <div className="popup-badges">
                       <StatusBadge status={complaint.status} type="status" />

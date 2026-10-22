@@ -63,7 +63,7 @@ export const EngineerComplaintDetails = () => {
       <div className="details-header">
         <div>
           <span className="details-id">Task #{complaint._id || complaint.id}</span>
-          <h1 className="page-title">{complaint.title || complaint.issueType}</h1>
+          <h1 className="page-title">{complaint.title || complaint.description || 'Work Order'}</h1>
         </div>
         <div className="status-badges-row">
           <StatusBadge status={complaint.status} type="status" />
@@ -84,7 +84,6 @@ export const EngineerComplaintDetails = () => {
           <EvidencePhotoViewer
             images={complaint.images}
             aiDetection={complaint.aiDetection}
-            issueType={complaint.issueType}
             createdAt={complaint.createdAt}
             title="Citizen Photo & Defect Identification"
           />

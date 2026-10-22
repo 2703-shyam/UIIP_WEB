@@ -5,13 +5,6 @@
 
 const AI_BASE_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000';
 
-// Mapping from ai-service CanonicalClass to UIIP complaint category options
-export const AI_CLASS_TO_CATEGORY = {
-  'Pothole': 'Pothole / Road Damage',
-  'Garbage/Hygiene': 'Garbage Accumulation',
-  'Waterlogging': 'Water Leakage / Drainage'
-};
-
 export const aiService = {
   /**
    * Check if ai-service is online and model is loaded
@@ -62,13 +55,9 @@ export const aiService = {
 
     const data = await res.json();
 
-    // Map primary_class to frontend category option
-    const mappedCategory = data.primary_class ? AI_CLASS_TO_CATEGORY[data.primary_class] || 'Other' : null;
-
     return {
       success: true,
       primaryClass: data.primary_class,
-      mappedCategory,
       confidence: data.confidence,
       suggestedDepartment: data.suggested_department,
       priority: data.priority,

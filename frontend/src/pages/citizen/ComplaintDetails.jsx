@@ -59,7 +59,7 @@ export const ComplaintDetails = () => {
       <div className="details-header">
         <div>
           <span className="details-id">Complaint #{complaint._id || complaint.id}</span>
-          <h1 className="page-title">{complaint.title || complaint.issueType}</h1>
+          <h1 className="page-title">{complaint.title || complaint.description || 'Complaint Details'}</h1>
         </div>
         <div className="status-badges-row">
           <StatusBadge status={complaint.status} type="status" />
@@ -82,7 +82,6 @@ export const ComplaintDetails = () => {
             images={complaint.images}
             aiDetection={complaint.aiDetection}
             showDetections={role === 'admin'}
-            issueType={complaint.issueType}
             createdAt={complaint.createdAt}
             title="Citizen Submitted Evidence Photo"
           />

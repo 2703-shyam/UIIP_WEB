@@ -3,6 +3,7 @@ import { Input } from '../common/Input';
 import { Select } from '../common/Select';
 import { Button } from '../common/Button';
 import { NOTICE_TYPES } from '../../constants/status';
+import { DEPARTMENTS } from '../../constants/departments';
 
 export const NoticeForm = ({ onSubmit, loading = false }) => {
   const [formData, setFormData] = useState({
@@ -44,12 +45,13 @@ export const NoticeForm = ({ onSubmit, loading = false }) => {
           options={Object.values(NOTICE_TYPES)}
           required
         />
-        <Input
+        <Select
           label="Department"
           name="department"
           value={formData.department}
           onChange={handleChange}
-          placeholder="e.g. Water Works Dept"
+          options={DEPARTMENTS}
+          placeholder="Select a department"
         />
       </div>
 

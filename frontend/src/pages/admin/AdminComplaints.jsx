@@ -34,7 +34,7 @@ export const AdminComplaints = () => {
 
   const filtered = complaints.filter((c) => {
     const matchesSearch =
-      (c.title || c.issueType || '').toLowerCase().includes(search.toLowerCase()) ||
+      (c.title || '').toLowerCase().includes(search.toLowerCase()) ||
       (c.description || '').toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter ? c.status === statusFilter : true;
     return matchesSearch && matchesStatus;
@@ -70,7 +70,7 @@ export const AdminComplaints = () => {
             <tr>
               <th>ID</th>
               <th>Photo</th>
-              <th>Category</th>
+              <th>Description</th>
               <th>Status</th>
               <th>Priority</th>
               <th>Department</th>
@@ -97,14 +97,7 @@ export const AdminComplaints = () => {
                       <span className="text-muted" style={{ fontSize: '0.8rem' }}>No photo</span>
                     )}
                   </td>
-                  <td>
-                    <strong>{c.issueType || 'General'}</strong>
-                    {c.aiDetection?.primaryClass && (
-                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#4338ca' }}>
-                        AI: {c.aiDetection.primaryClass} ({Math.round((c.aiDetection.confidence || 0.85) * 100)}%)
-                      </span>
-                    )}
-                  </td>
+                  <td>{(c.description || 'No description provided').slice(0, 90)}</td>
                   <td>
                     <StatusBadge status={c.status} type="status" />
                     {c.status === 'Resolved' && (

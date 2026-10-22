@@ -13,7 +13,6 @@ const complaintSchema = new mongoose.Schema({
   resolutionDetails: { type: String },
   resolutionImages: [{ type: String }],
   resolvedAt: { type: Date },
-  issueType: { type: String },
   severity: { type: String },
   priority: { type: String },
   department: { type: String },

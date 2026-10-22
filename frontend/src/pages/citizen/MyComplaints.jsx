@@ -34,7 +34,7 @@ export const MyComplaints = () => {
 
   const filteredComplaints = complaints.filter((c) => {
     const matchesSearch =
-      (c.title || c.issueType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter ? c.status === statusFilter : true;
     return matchesSearch && matchesStatus;

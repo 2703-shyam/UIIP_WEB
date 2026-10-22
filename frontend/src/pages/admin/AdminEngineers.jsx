@@ -5,16 +5,9 @@ import { Input } from '../../components/common/Input';
 import { Loading } from '../../components/common/Loading';
 import { useToast } from '../../hooks/useToast';
 import { userService } from '../../services/userService';
+import { DEPARTMENTS } from '../../constants/departments';
 
 const emptyForm = { name: '', email: '', phone: '', department: '', password: '' };
-
-const departments = [
-  'Roads & Public Works',
-  'Water Works & Sewage',
-  'Electrical & Streetlighting',
-  'Sanitation & Solid Waste',
-  'Horticulture & Parks'
-];
 
 export const AdminEngineers = () => {
   const [engineers, setEngineers] = useState([]);
@@ -129,7 +122,7 @@ export const AdminEngineers = () => {
               <label className="form-label" htmlFor="engineer-department">Department <span className="required-star">*</span></label>
               <select id="engineer-department" className="form-select" name="department" value={form.department} onChange={handleChange} required>
                 <option value="">Select department</option>
-                {departments.map((department) => <option key={department} value={department}>{department}</option>)}
+                {DEPARTMENTS.map((department) => <option key={department} value={department}>{department}</option>)}
               </select>
             </div>
           </div>

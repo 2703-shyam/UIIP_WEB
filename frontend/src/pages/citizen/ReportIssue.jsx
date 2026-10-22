@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, MapPin, Search, Sparkles, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Camera, MapPin, Search, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { complaintService } from '../../services/complaintService';
 import { useToast } from '../../hooks/useToast';
 import { Input } from '../../components/common/Input';
-import { Select } from '../../components/common/Select';
 import { Button } from '../../components/common/Button';
 import { LocationPicker } from '../../components/maps/LocationPicker';
 import { LiveCameraCapture } from '../../components/complaints/LiveCameraCapture';
@@ -14,7 +13,6 @@ import { aiService } from '../../services/aiService';
 
 export const ReportIssue = () => {
   const [formData, setFormData] = useState({
-    issueType: '',
     description: '',
     locationName: '',
     coordinates: null
@@ -64,22 +62,18 @@ export const ReportIssue = () => {
       const result = await aiService.classifyImage(file);
       setAiResult(result);
 
-      if (result.mappedCategory && !result.needsManualReview) {
-        setFormData((prev) => ({
-          ...prev,
-          issueType: result.mappedCategory
-        }));
+      if (result.primaryClass && !result.needsManualReview) {
         addToast(
-          `🤖 AI Model detected: ${result.primaryClass} (${Math.round((result.confidence || 0.85) * 100)}% confidence). Auto-selected "${result.mappedCategory}"!`,
+          `🤖 AI detected ${result.primaryClass} (${Math.round((result.confidence || 0) * 100)}% confidence).`,
           'success'
         );
       } else {
-        addToast('AI analysis completed. Review required; select category below.', 'info');
+        addToast('No qualifying issue was detected. Add a description and submit your report.', 'info');
       }
     } catch (err) {
       console.warn('AI classification failed:', err);
       addToast(
-        'AI service offline or model loading (http://localhost:8000). You can select problem type manually.',
+        'AI service offline or model loading (http://localhost:8000). You can still describe and submit the issue.',
         'warning'
       );
     } finally {
@@ -153,7 +147,6 @@ export const ReportIssue = () => {
     setLoading(true);
     try {
       const data = new FormData();
-      data.append('issueType', formData.issueType || 'General Infrastructure');
       data.append('description', formData.description);
       data.append('locationName', formData.locationName);
       if (formData.coordinates) {
@@ -229,7 +222,7 @@ export const ReportIssue = () => {
     <div className="form-page-container">
       <h1 className="page-title">Report an Infrastructure Issue</h1>
       <p className="page-subtitle">
-        Snap an authentic live photo to auto-diagnose the problem type with YOLOv8 AI, pin your exact location, and submit.
+        Snap an authentic live photo for AI inspection, describe the issue, pin its location, and submit your report.
       </p>
 
       <form onSubmit={handleSubmit} className="report-form card">
@@ -247,34 +240,7 @@ export const ReportIssue = () => {
           />
         </div>
 
-        {/* Step 2: Auto-selected Problem Type */}
-        <div className="form-section category-selection-section">
-          <div className="label-with-ai-badge">
-            <label className="form-label">Step 2: Problem Type / Category *</label>
-            {aiResult?.mappedCategory && !aiResult.needsManualReview && aiResult.mappedCategory === formData.issueType && (
-              <span className="ai-autoselected-pill">
-                <Sparkles size={12} /> Auto-Selected by AI ({aiResult.primaryClass})
-              </span>
-            )}
-          </div>
-          <Select
-            name="issueType"
-            value={formData.issueType}
-            onChange={handleInputChange}
-            options={[
-              'Pothole / Road Damage',
-              'Streetlight Failure',
-              'Water Leakage / Drainage',
-              'Garbage Accumulation',
-              'Traffic Signal Failure',
-              'Tree Fall / Pathway Obstruction',
-              'Other'
-            ]}
-            required
-          />
-        </div>
-
-        {/* Step 3: Description */}
+        {/* Report details */}
         <div className="form-group">
           <label className="form-label">Detailed Description *</label>
           <textarea
@@ -288,7 +254,7 @@ export const ReportIssue = () => {
           />
         </div>
 
-        {/* Step 4: Location Address & Map Pin */}
+        {/* Location Address & Map Pin */}
         <div className="address-search-row">
           <Input
             label="Location Address / Nearby Landmark"

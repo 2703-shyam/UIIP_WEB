@@ -12,6 +12,7 @@ import { ImagePreview } from '../../components/complaints/ImagePreview';
 import { EvidencePhotoViewer } from '../../components/complaints/EvidencePhotoViewer';
 import { ResolutionReportView } from '../../components/complaints/ResolutionReportView';
 import { PRIORITY_LEVELS, SEVERITY_LEVELS } from '../../constants/priority';
+import { DEPARTMENTS, normalizeDepartment } from '../../constants/departments';
 
 export const VerifyComplaint = () => {
   const { id } = useParams();
@@ -24,7 +25,7 @@ export const VerifyComplaint = () => {
   const [formData, setFormData] = useState({
     severity: SEVERITY_LEVELS.MODERATE,
     priority: PRIORITY_LEVELS.MEDIUM,
-    department: 'Roads & Public Works',
+    department: DEPARTMENTS[0],
     engineerId: ''
   });
 
@@ -38,7 +39,8 @@ export const VerifyComplaint = () => {
       const compData = await complaintService.getComplaintById(id);
       setComplaint(compData);
 
-      const resolvedDept = compData.department || compData.aiDetection?.suggestedDepartment || 'Roads & Public Works';
+      const suggestedDept = compData.department || compData.aiDetection?.suggestedDepartment;
+      const resolvedDept = normalizeDepartment(suggestedDept) || DEPARTMENTS[0];
       const resolvedPriority = compData.priority || compData.aiDetection?.priority || PRIORITY_LEVELS.MEDIUM;
 
       setFormData((prev) => ({
@@ -60,8 +62,22 @@ export const VerifyComplaint = () => {
     loadData();
   }, [id]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = async (e) => {
+    const { name, value } = e.target;
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+      ...(name === 'department' ? { engineerId: '' } : {})
+    }));
+
+    if (name === 'department') {
+      try {
+        const matchingEngineers = await userService.getEngineers(value);
+        setEngineers(matchingEngineers || []);
+      } catch {
+        setEngineers([]);
+      }
+    }
   };
 
   const handleVerifyAndAssign = async (e) => {
@@ -111,7 +127,6 @@ export const VerifyComplaint = () => {
             images={complaint.images}
             aiDetection={complaint.aiDetection}
             showDetections
-            issueType={complaint.issueType}
             createdAt={complaint.createdAt}
             title="Citizen Submitted Photo & Authenticity Verification"
           />
@@ -150,13 +165,7 @@ export const VerifyComplaint = () => {
             name="department"
             value={formData.department}
             onChange={handleChange}
-            options={[
-              'Roads & Public Works',
-              'Water Works & Sewage',
-              'Electrical & Streetlighting',
-              'Sanitation & Solid Waste',
-              'Horticulture & Parks'
-            ]}
+            options={DEPARTMENTS}
             required
           />
 
@@ -171,6 +180,11 @@ export const VerifyComplaint = () => {
               label: `${eng.name} (${eng.department || 'Field'})`
             }))}
           />
+          {engineers.length === 0 && (
+            <p className="helper-text">
+              No active engineers are assigned to {formData.department}. Add or activate an engineer for this department in Engineer Management.
+            </p>
+          )}
 
           <Button type="submit" variant="primary" loading={submitting} className="btn-block" style={{ marginTop: '15px' }}>
             Confirm Verification & Assign

@@ -299,12 +299,6 @@ export const LiveCameraCapture = ({
                     {aiResult.suggestedDepartment || 'Municipal Review'}
                   </span>
                 </div>
-                <div className="ai-result-item">
-                  <span className="result-label">Auto-Selected Category:</span>
-                  <span className="result-value category-tag">
-                    {!aiResult.needsManualReview && aiResult.mappedCategory ? aiResult.mappedCategory : 'Manual Selection'}
-                  </span>
-                </div>
                 {aiResult.priority && (
                   <div className="ai-result-item">
                     <span className="result-label">Suggested Priority:</span>
@@ -315,8 +309,8 @@ export const LiveCameraCapture = ({
                 )}
               </div>
 
-              <p className="ai-autofill-hint">
-                ✓ Issue Category was automatically pre-selected based on AI inspection. You can still adjust it below if needed.
+              <p className="ai-diagnosis-hint">
+                AI diagnosis is advisory. Add a clear description of the issue below.
               </p>
             </div>
           )}

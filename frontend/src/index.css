@@ -2255,10 +2255,6 @@ a:hover {
   color: var(--primary);
   font-size: 1rem;
 }
-.category-tag {
-  color: #0284c7;
-}
-
 .priority-pill {
   display: inline-block;
   padding: 2px 8px;
@@ -2271,7 +2267,7 @@ a:hover {
 .priority-medium { background: #fef3c7; color: #d97706; }
 .priority-low { background: #dcfce7; color: #16a34a; }
 
-.ai-autofill-hint {
+.ai-diagnosis-hint {
   font-size: 0.775rem;
   color: #1e40af;
   margin: 0;
@@ -2291,27 +2287,6 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-/* Category header AI pill */
-.label-with-ai-badge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.ai-autoselected-pill {
-  background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
-  color: #4f46e5;
-  border: 1px solid #c7d2fe;
-  font-size: 0.725rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .section-heading-label {

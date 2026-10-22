@@ -117,7 +117,7 @@ export const ResolveComplaint = () => {
           <div className="reference-card-header">
             <div>
               <span className="reference-badge">ORIGINAL CITIZEN REPORT</span>
-              <h3 style={{ margin: '6px 0 2px 0' }}>{complaint.issueType || 'Civic Infrastructure Defect'}</h3>
+              <h3 style={{ margin: '6px 0 2px 0' }}>{complaint.aiDetection?.primaryClass || 'Civic Infrastructure Defect'}</h3>
               {(complaint.location?.address || complaint.locationName) && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.88rem' }}>
                   <MapPin size={14} /> {complaint.location?.address || complaint.locationName}

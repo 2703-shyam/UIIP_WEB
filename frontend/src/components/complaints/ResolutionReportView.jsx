@@ -13,6 +13,7 @@ import {
   Building
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatDate';
+import { DEPARTMENTS } from '../../constants/departments';
 
 export const ResolutionReportView = ({ complaint }) => {
   const [lightboxImg, setLightboxImg] = useState(null);
@@ -24,7 +25,7 @@ export const ResolutionReportView = ({ complaint }) => {
 
   const engineerName = complaint.assignedEngineerId?.name || 
                        (typeof complaint.assignedEngineerId === 'string' ? complaint.assignedEngineerId : 'Field Engineering Division');
-  const engineerDept = complaint.assignedEngineerId?.department || complaint.department || 'Public Works';
+  const engineerDept = complaint.assignedEngineerId?.department || complaint.department || DEPARTMENTS[0];
   const resolvedDate = complaint.resolvedAt || complaint.updatedAt;
 
   const citizenImg = complaint.images && complaint.images.length > 0 ? complaint.images[0] : null;
@@ -119,7 +120,7 @@ export const ResolutionReportView = ({ complaint }) => {
               )}
             </div>
             <div className="comparison-caption">
-              <strong>Defect:</strong> {complaint.issueType || 'Reported Issue'}
+              <strong>Detected issue:</strong> {complaint.aiDetection?.primaryClass || 'Reported Issue'}
             </div>
           </div>
 

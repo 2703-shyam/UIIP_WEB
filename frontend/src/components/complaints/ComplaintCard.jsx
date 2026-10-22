@@ -16,7 +16,7 @@ export const ComplaintCard = ({ complaint, linkPrefix = '/citizen/complaints' })
       {/* Top Evidence Photo Preview if Available */}
       {photoSrc && (
         <div className="complaint-card-image-box">
-          <img src={photoSrc} alt={complaint.issueType || 'Issue'} className="complaint-card-img" />
+          <img src={photoSrc} alt="Reported issue" className="complaint-card-img" />
           <div className="card-img-badges">
             {isLive ? (
               <span className="card-auth-pill card-auth-live" title="Authentic Live Camera Capture">
@@ -42,7 +42,7 @@ export const ComplaintCard = ({ complaint, linkPrefix = '/citizen/complaints' })
       </div>
 
       <div className="card-body">
-        <h4 className="complaint-title">{complaint.title || complaint.issueType || 'Infrastructure Issue'}</h4>
+        <h4 className="complaint-title">{complaint.title || complaint.description?.slice(0, 90) || 'Infrastructure Issue'}</h4>
         <p className="complaint-desc">{complaint.description}</p>
 
         <div className="card-meta">

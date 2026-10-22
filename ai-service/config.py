@@ -1,6 +1,7 @@
 """Central configuration for the local civic issue detection API."""
 
 from pathlib import Path
+import json
 import os
 
 from dotenv import load_dotenv
@@ -21,6 +22,10 @@ CONFIDENCE_THRESHOLDS: dict[str, float] = {
 }
 CONFIDENCE_THRESHOLD_FALLBACK = 0.434
 CONFIDENCE_THRESHOLD = CONFIDENCE_THRESHOLD_FALLBACK
+
+DEPARTMENTS = json.loads(
+    (SERVICE_DIR.parent / "shared" / "departments.json").read_text(encoding="utf-8")
+)["departments"]
 
 # Lower bound is inclusive; upper bound is exclusive, except for the last band.
 # Lower-confidence accepted detections start in the Low band.
@@ -45,9 +50,9 @@ CLASS_NAME_MAP: dict[str, str] = {
 }
 
 DEPARTMENT_MAP: dict[str, str] = {
-    "Pothole": "Roads & Infrastructure",
-    "Garbage/Hygiene": "Sanitation & Hygiene",
-    "Waterlogging": "Drainage & Stormwater",
+    "Pothole": DEPARTMENTS[0],
+    "Garbage/Hygiene": DEPARTMENTS[2],
+    "Waterlogging": DEPARTMENTS[1],
 }
 
 MASTER_ADMIN_QUEUE = "Master Admin"

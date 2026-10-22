@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const { DEPARTMENTS, LEGACY_DEPARTMENT_MAP } = require('../constants/departments');
 
 const getUsers = async (req, res, next) => {
   try {
@@ -12,9 +13,19 @@ const getEngineers = async (req, res, next) => {
   try {
     const query = { role: 'engineer' };
     if (!(req.user.role === 'admin' && req.query.includeInactive === 'true')) query.isActive = true;
-    if (req.query.department) query.department = req.query.department;
-    const engineers = await User.find(query).select('-passwordHash').sort({ name: 1 });
-    res.json({ success: true, data: engineers });
+    if (req.query.department) {
+      const department = req.query.department;
+      const legacyNames = Object.entries(LEGACY_DEPARTMENT_MAP)
+        .filter(([, canonical]) => canonical === department)
+        .map(([legacy]) => legacy);
+      query.department = { $in: [department, ...legacyNames] };
+    }
+    const engineers = await User.find(query).select('-passwordHash').sort({ name: 1 }).lean();
+    const normalizedEngineers = engineers.map((engineer) => ({
+      ...engineer,
+      department: LEGACY_DEPARTMENT_MAP[engineer.department] || engineer.department
+    }));
+    res.json({ success: true, data: normalizedEngineers });
   } catch (error) { next(error); }
 };
 
@@ -22,7 +33,7 @@ const createEngineer = async (req, res, next) => {
   try {
     const { name, email, password, phone, department } = req.body;
     const normalizedEmail = email?.trim().toLowerCase();
-    if (!name?.trim() || !normalizedEmail || !/^\S+@\S+\.\S+$/.test(normalizedEmail) || !department || !password || password.length < 8) {
+    if (!name?.trim() || !normalizedEmail || !/^\S+@\S+\.\S+$/.test(normalizedEmail) || !DEPARTMENTS.includes(department?.trim()) || !password || password.length < 8) {
       res.status(400);
       throw new Error('Name, valid email, department, and a password of at least 8 characters are required');
     }

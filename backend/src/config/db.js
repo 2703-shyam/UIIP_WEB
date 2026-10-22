@@ -1,6 +1,26 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Complaint = require('../models/Complaint');
+const PublicNotice = require('../models/PublicNotice');
+const { LEGACY_DEPARTMENT_MAP } = require('../constants/departments');
+
+const normalizeLegacyDepartments = async () => {
+  await Complaint.collection.updateMany(
+    { issueType: { $exists: true } },
+    { $unset: { issueType: '' } }
+  );
+
+  for (const [legacy, department] of Object.entries(LEGACY_DEPARTMENT_MAP)) {
+    await User.updateMany({ role: 'engineer', department: legacy }, { $set: { department } });
+    await Complaint.updateMany({ department: legacy }, { $set: { department } });
+    await Complaint.updateMany(
+      { 'aiDetection.suggestedDepartment': legacy },
+      { $set: { 'aiDetection.suggestedDepartment': department } }
+    );
+    await PublicNotice.updateMany({ department: legacy }, { $set: { department } });
+  }
+};
 
 const ensureDefaultAdmin = async () => {
   try {
@@ -19,7 +39,7 @@ const ensureDefaultAdmin = async () => {
         phone: '1111111111',
         passwordHash,
         role: 'admin',
-        department: 'Central Administration',
+        department: null,
         isActive: true
       });
 
@@ -29,8 +49,9 @@ const ensureDefaultAdmin = async () => {
 
     if (adminUser.role !== 'admin') {
       adminUser.role = 'admin';
-      await adminUser.save();
     }
+    adminUser.department = null;
+    await adminUser.save();
 
     if (!(await bcrypt.compare(adminPassword, adminUser.passwordHash))) {
       const salt = await bcrypt.genSalt(10);
@@ -51,6 +72,7 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await ensureDefaultAdmin();
+    await normalizeLegacyDepartments();
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
     process.exit(1);

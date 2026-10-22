@@ -18,7 +18,6 @@ import { aiService } from '../../services/aiService';
 export const EvidencePhotoViewer = ({ 
   images = [], 
   aiDetection = null, 
-  issueType = '', 
   createdAt = null,
   title = "Citizen Evidence & Authenticity Inspection",
   showDetections = false
@@ -224,7 +223,7 @@ export const EvidencePhotoViewer = ({
             <div className="ai-meta-col">
               <span className="meta-label">Identified Defect:</span>
               <strong className="meta-value highlight-problem">
-                {aiDetection.primaryClass || aiDetection.object || issueType || 'Civic Infrastructure Defect'}
+                {aiDetection.primaryClass || aiDetection.object || 'Civic Infrastructure Defect'}
               </strong>
             </div>
             {aiDetection.suggestedDepartment && (
@@ -258,7 +257,7 @@ export const EvidencePhotoViewer = ({
             <div className="lightbox-header">
               <div className="lightbox-title-area">
                 <ShieldCheck size={20} className="text-success" />
-                <span>Evidence Inspection — {issueType || 'Civic Defect'}</span>
+                <span>Evidence Inspection</span>
               </div>
               <div className="lightbox-controls">
                 <button 

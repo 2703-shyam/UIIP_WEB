@@ -89,7 +89,7 @@ export const AdminDashboard = () => {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Category</th>
+                  <th>Description</th>
                   <th>Submitted Date</th>
                   <th>Action</th>
                 </tr>
@@ -100,7 +100,7 @@ export const AdminDashboard = () => {
                   return (
                     <tr key={id}>
                       <td>#{id.substring(0, 8)}</td>
-                      <td>{c.issueType || 'Infrastructure'}</td>
+                      <td>{c.description || 'Infrastructure issue'}</td>
                       <td>{new Date(c.createdAt).toLocaleDateString()}</td>
                       <td>
                         <Link to={`/admin/complaints/${id}/verify`} className="btn btn-sm btn-primary">
