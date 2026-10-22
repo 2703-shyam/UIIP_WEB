@@ -168,6 +168,9 @@ export const ReportIssue = () => {
           JSON.stringify({
             primaryClass: aiResult.primaryClass,
             confidence: aiResult.confidence,
+            detections: aiResult.detections,
+            imageSize: aiResult.imageSize,
+            thresholdUsed: aiResult.thresholdUsed,
             suggestedDepartment: aiResult.suggestedDepartment,
             priority: aiResult.priority,
             isLiveCaptured: true,

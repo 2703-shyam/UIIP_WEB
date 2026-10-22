@@ -53,8 +53,11 @@ export const LiveCameraCapture = ({
     stopCamera();
     setCameraError(null);
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError('Live camera requires a secure page (HTTPS or localhost) and a browser that supports camera access. Use the device camera option below, or open this site over HTTPS.');
+    // Browsers block getUserMedia on HTTP LAN addresses. The native file input
+    // can still ask mobile browsers to open the device camera in that context.
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setCameraError('This HTTP page cannot show a live camera preview. Opening your device camera instead.');
+      fileInputRef.current?.click();
       return;
     }
 
@@ -287,7 +290,7 @@ export const LiveCameraCapture = ({
                     {aiResult.needsManualReview ? 'Possible Detection (Review):' : 'Detected Issue:'}
                   </span>
                   <span className="result-value issue-highlight">
-                    {aiResult.primaryClass || 'Review Required'}
+                    {aiResult.primaryClass || (aiResult.reviewReason === 'No issue found' ? 'No issue found' : 'Review Required')}
                   </span>
                 </div>
                 <div className="ai-result-item">

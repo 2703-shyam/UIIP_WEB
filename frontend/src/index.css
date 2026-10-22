@@ -2421,6 +2421,75 @@ a:hover {
   transition: transform 0.3s ease;
 }
 
+.admin-detection-frame {
+  position: relative;
+  max-height: 460px;
+  flex: 0 1 auto;
+}
+
+.admin-detection-frame > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.admin-detection-box {
+  position: absolute;
+  border: 2px solid #f43f5e;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.65);
+  pointer-events: none;
+}
+
+.admin-detection-box > span {
+  position: absolute;
+  left: -2px;
+  top: -24px;
+  padding: 2px 6px;
+  color: #fff;
+  background: #e11d48;
+  border-radius: 4px 4px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-detection-empty-note {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 5;
+  padding: 6px 10px;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-detection-empty-note button {
+  padding: 4px 8px;
+  color: #fff;
+  background: #4f46e5;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-detection-empty-note button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.lightbox-detection-frame {
+  max-height: 60vh;
+  flex: 0 1 auto;
+}
+
 .evidence-main-preview:hover .evidence-featured-img {
   transform: scale(1.015);
 }

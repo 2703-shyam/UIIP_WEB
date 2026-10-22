@@ -21,6 +21,23 @@ const complaintSchema = new mongoose.Schema({
     object: { type: String },
     primaryClass: { type: String },
     confidence: { type: Number },
+    detections: [{
+      class_name: { type: String },
+      confidence: { type: Number },
+      bbox: {
+        x1: { type: Number }, y1: { type: Number },
+        x2: { type: Number }, y2: { type: Number }
+      },
+      bbox_normalized: {
+        x1: { type: Number }, y1: { type: Number },
+        x2: { type: Number }, y2: { type: Number }
+      }
+    }],
+    imageSize: {
+      width: { type: Number },
+      height: { type: Number }
+    },
+    thresholdUsed: { type: Number },
     suggestedDepartment: { type: String },
     priority: { type: String },
     severity: { type: String },

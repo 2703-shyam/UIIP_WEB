@@ -13,17 +13,23 @@ import {
   Eye
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatDate';
+import { aiService } from '../../services/aiService';
 
 export const EvidencePhotoViewer = ({ 
   images = [], 
   aiDetection = null, 
   issueType = '', 
   createdAt = null,
-  title = "Citizen Evidence & Authenticity Inspection"
+  title = "Citizen Evidence & Authenticity Inspection",
+  showDetections = false
 }) => {
   const [selectedImage, setSelectedImage] = useState(images[0] || null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [imageSize, setImageSize] = useState(null);
+  const [reprocessedDetections, setReprocessedDetections] = useState(null);
+  const [isReprocessing, setIsReprocessing] = useState(false);
+  const [reprocessError, setReprocessError] = useState('');
 
   if (!images || images.length === 0) {
     return (
@@ -49,6 +55,68 @@ export const EvidencePhotoViewer = ({
 
   const isLive = aiDetection?.isLiveCaptured !== false;
   const captureTime = aiDetection?.capturedAt || createdAt;
+  const detections = showDetections
+    ? (aiDetection?.detections?.length ? aiDetection.detections : (reprocessedDetections || []))
+    : [];
+
+  const reprocessImage = async (event) => {
+    event.stopPropagation();
+    setIsReprocessing(true);
+    setReprocessError('');
+    try {
+      const response = await fetch(activeImage);
+      if (!response.ok) throw new Error('Could not load the report image.');
+      const result = await aiService.classifyImage(await response.blob());
+      setReprocessedDetections(result.detections || []);
+      if (result.imageSize) setImageSize(result.imageSize);
+      if (!result.detections?.length) setReprocessError('The AI service returned no bounding boxes for this image.');
+    } catch (error) {
+      setReprocessError(error.message || 'Could not re-run AI detection.');
+    } finally {
+      setIsReprocessing(false);
+    }
+  };
+
+  const detectionOverlay = (className = '') => detections.length > 0 && imageSize ? (
+    <div
+      className={`admin-detection-frame ${className}`}
+      style={{
+        aspectRatio: `${imageSize.width} / ${imageSize.height}`,
+        width: `min(100%, ${460 * imageSize.width / imageSize.height}px)`,
+        transform: className ? `scale(${zoomLevel})` : undefined
+      }}
+    >
+      <img
+        src={activeImage}
+        alt="Evidence with AI detection boxes"
+        onLoad={(event) => setImageSize({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
+      />
+      {detections.map((detection, index) => {
+        const pixelBox = detection.bbox;
+        const storedSize = aiDetection?.imageSize;
+        const box = detection.bbox_normalized || (
+          pixelBox && storedSize?.width && storedSize?.height
+            ? {
+                x1: pixelBox.x1 / storedSize.width,
+                y1: pixelBox.y1 / storedSize.height,
+                x2: pixelBox.x2 / storedSize.width,
+                y2: pixelBox.y2 / storedSize.height
+              }
+            : null
+        );
+        if (!box) return null;
+        const left = Math.max(0, Math.min(100, box.x1 * 100));
+        const top = Math.max(0, Math.min(100, box.y1 * 100));
+        const width = Math.max(0, Math.min(100 - left, (box.x2 - box.x1) * 100));
+        const height = Math.max(0, Math.min(100 - top, (box.y2 - box.y1) * 100));
+        return (
+          <div key={`${detection.class_name}-${index}`} className="admin-detection-box" style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}>
+            <span>{detection.class_name} · {Math.round(detection.confidence * 100)}%</span>
+          </div>
+        );
+      })}
+    </div>
+  ) : null;
 
   return (
     <div className="evidence-viewer-card card">
@@ -82,11 +150,16 @@ export const EvidencePhotoViewer = ({
 
       {/* Main Image Display with Interactive Zoom Trigger */}
       <div className="evidence-main-preview" onClick={() => handleOpenLightbox(activeImage)}>
-        <img 
-          src={activeImage} 
-          alt="Citizen evidence photo" 
-          className="evidence-featured-img" 
-        />
+        {detectionOverlay() || <img src={activeImage} alt="Citizen evidence photo" onLoad={(event) => setImageSize({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })} className="evidence-featured-img" />}
+
+        {showDetections && aiDetection && detections.length === 0 && (
+          <div className="admin-detection-empty-note">
+            <span>{reprocessError || 'No bounding box coordinates were saved for this report.'}</span>
+            <button type="button" onClick={reprocessImage} disabled={isReprocessing}>
+              {isReprocessing ? 'Analyzing…' : 'Run AI detection'}
+            </button>
+          </div>
+        )}
         
         <div className="image-overlay-actions">
           <button 
@@ -225,12 +298,7 @@ export const EvidencePhotoViewer = ({
             </div>
 
             <div className="lightbox-image-wrapper">
-              <img 
-                src={activeImage} 
-                alt="Enlarged evidence" 
-                style={{ transform: `scale(${zoomLevel})` }}
-                className="lightbox-img" 
-              />
+              {detectionOverlay('lightbox-detection-frame') || <img src={activeImage} alt="Enlarged evidence" onLoad={(event) => setImageSize({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })} style={{ transform: `scale(${zoomLevel})` }} className="lightbox-img" />}
             </div>
 
             <div className="lightbox-footer">

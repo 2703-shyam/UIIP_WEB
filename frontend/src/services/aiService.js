@@ -76,6 +76,8 @@ export const aiService = {
       routedTo: data.routed_to,
       reviewReason: data.review_reason,
       detections: data.detections || [],
+      imageSize: data.image_size || null,
+      thresholdUsed: data.threshold_used,
       inferenceTimeMs: data.inference_time_ms,
       modelName: data.model_name
     };

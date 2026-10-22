@@ -12,12 +12,20 @@ load_dotenv(SERVICE_DIR / ".env")
 # resolved from this service directory, so deployment does not depend on CWD.
 MODEL_PATH = os.getenv("MODEL_PATH", "weights/best.pt")
 
-CONFIDENCE_THRESHOLD = 0.8
+# Category-specific minimum confidence for accepting a detected issue. Labels
+# not listed here use the overall fallback threshold.
+CONFIDENCE_THRESHOLDS: dict[str, float] = {
+    "Garbage/Hygiene": 0.60,
+    "Pothole": 0.45,
+    "Waterlogging": 0.60,
+}
+CONFIDENCE_THRESHOLD_FALLBACK = 0.434
+CONFIDENCE_THRESHOLD = CONFIDENCE_THRESHOLD_FALLBACK
 
 # Lower bound is inclusive; upper bound is exclusive, except for the last band.
-# Thus these correspond to 0.60–0.74, 0.75–0.89, and 0.90–1.00 at 2 decimals.
+# Lower-confidence accepted detections start in the Low band.
 PRIORITY_BANDS: tuple[tuple[float, float, str], ...] = (
-    (0.60, 0.75, "Low"),
+    (CONFIDENCE_THRESHOLD_FALLBACK, 0.75, "Low"),
     (0.75, 0.90, "Medium"),
     (0.90, 1.00, "High"),
 )

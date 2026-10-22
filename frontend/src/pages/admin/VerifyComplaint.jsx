@@ -110,6 +110,7 @@ export const VerifyComplaint = () => {
           <EvidencePhotoViewer
             images={complaint.images}
             aiDetection={complaint.aiDetection}
+            showDetections
             issueType={complaint.issueType}
             createdAt={complaint.createdAt}
             title="Citizen Submitted Photo & Authenticity Verification"

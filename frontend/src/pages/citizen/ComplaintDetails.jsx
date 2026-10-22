@@ -81,6 +81,7 @@ export const ComplaintDetails = () => {
           <EvidencePhotoViewer
             images={complaint.images}
             aiDetection={complaint.aiDetection}
+            showDetections={role === 'admin'}
             issueType={complaint.issueType}
             createdAt={complaint.createdAt}
             title="Citizen Submitted Evidence Photo"

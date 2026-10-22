@@ -38,7 +38,7 @@ Example request:
 curl -X POST -F "image=@test.jpg" http://localhost:8000/classify
 ```
 
-The service returns all model detections with pixel and normalized bounding boxes. Civic labels receive the configured department suggestion; other model labels are returned as-is and used as `routed_to`, with no department suggestion. Detections below the configured `CONFIDENCE_THRESHOLD`, and images with no detections, are routed to the Master Admin queue for manual review. The YOLO prediction floor is kept below that threshold so low-confidence results can be reviewed.
+The service returns only detections that meet their class-specific minimum confidence, with pixel (`bbox`) and normalized (`bbox_normalized`) coordinates. Minimum confidence is 0.60 for Garbage/Hygiene and Waterlogging, 0.45 for Pothole, and 0.434 for other labels. The highest-confidence qualifying detection is used for routing; when none qualify, the response says “No issue found” and returns an empty detections list. The YOLO prediction floor is kept below these thresholds so the service can evaluate confidence before deciding which coordinates to return.
 
 Priority bands use inclusive lower bounds and exclusive upper bounds (the last band includes 1.00): 0.60–<0.75 Low, 0.75–<0.90 Medium, and 0.90–1.00 High. These match the requested bands at two-decimal confidence display.
 

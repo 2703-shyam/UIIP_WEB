@@ -13,9 +13,25 @@ def build_classification_response(
     inference_time_ms: float,
     model_name: str,
 ) -> ClassificationResponse:
-    """Choose the highest-confidence detection and apply routing rules."""
-    primary = max(detections, key=lambda detection: detection.confidence, default=None)
-    threshold = config.CONFIDENCE_THRESHOLD
+    """Return only above-threshold detections and route the strongest one."""
+    def canonical_class(detection: Detection) -> str:
+        normalized_name = detection.class_name.strip().lower().replace("-", " ").replace(" ", "_")
+        return config.CLASS_NAME_MAP.get(normalized_name, detection.class_name)
+
+    def threshold_for(detection: Detection) -> float:
+        return config.CONFIDENCE_THRESHOLDS.get(
+            canonical_class(detection), config.CONFIDENCE_THRESHOLD_FALLBACK
+        )
+
+    accepted_detections = [
+        detection for detection in detections
+        if detection.confidence >= threshold_for(detection)
+    ]
+    primary = max(
+        accepted_detections,
+        key=lambda detection: detection.confidence,
+        default=None,
+    )
 
     if primary is None:
         return ClassificationResponse(
@@ -26,32 +42,17 @@ def build_classification_response(
             priority=None,
             needs_manual_review=True,
             routed_to=config.MASTER_ADMIN_QUEUE,
-            review_reason="No issue detected",
-            detections=detections,
+            review_reason="No issue found",
+            detections=[],
             image_size=image_size,
-            threshold_used=threshold,
+            threshold_used=config.CONFIDENCE_THRESHOLD_FALLBACK,
             model_name=model_name,
             inference_time_ms=inference_time_ms,
         )
 
-    if primary.confidence < threshold:
-        return ClassificationResponse(
-            status="success",
-            primary_class=primary.class_name,
-            confidence=primary.confidence,
-            suggested_department=None,
-            priority=None,
-            needs_manual_review=True,
-            routed_to=config.MASTER_ADMIN_QUEUE,
-            review_reason=f"Low confidence (<{threshold:g})",
-            detections=detections,
-            image_size=image_size,
-            threshold_used=threshold,
-            model_name=model_name,
-            inference_time_ms=inference_time_ms,
-        )
+    canonical = canonical_class(primary)
+    threshold = threshold_for(primary)
 
-    canonical = config.CLASS_NAME_MAP.get(primary.class_name.strip().lower().replace("-", " ").replace(" ", "_"), primary.class_name)
     department = config.DEPARTMENT_MAP.get(canonical)
 
     priority = None
@@ -76,7 +77,7 @@ def build_classification_response(
         needs_manual_review=False,
         routed_to=department or primary.class_name,
         review_reason=None,
-        detections=detections,
+        detections=accepted_detections,
         image_size=image_size,
         threshold_used=threshold,
         model_name=model_name,
