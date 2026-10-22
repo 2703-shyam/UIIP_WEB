@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
+import { FeedbackBanner } from '../../components/common/FeedbackBanner';
 import { ROLES } from '../../constants/roles';
 
 export const Login = () => {
@@ -14,6 +15,7 @@ export const Login = () => {
   const { login } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -59,6 +61,10 @@ export const Login = () => {
       <div className="auth-card">
         <h2 className="auth-title">Sign In to UIIP</h2>
         <p className="auth-subtitle">Enter your credentials to access your account</p>
+
+        {location.state?.reauthenticationRequired && (
+          <FeedbackBanner tone="neutral">Your session ended after browser navigation. Sign in again to continue.</FeedbackBanner>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <Input

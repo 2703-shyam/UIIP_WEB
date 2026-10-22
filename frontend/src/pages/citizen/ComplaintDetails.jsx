@@ -9,6 +9,7 @@ import { ComplaintTimeline } from '../../components/complaints/ComplaintTimeline
 import { EvidencePhotoViewer } from '../../components/complaints/EvidencePhotoViewer';
 import { ResolutionReportView } from '../../components/complaints/ResolutionReportView';
 import { formatDate } from '../../utils/formatDate';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 import { ArrowLeft, MapPin, Calendar, User, Building, ShieldCheck } from 'lucide-react';
 
 export const ComplaintDetails = () => {
@@ -118,7 +119,7 @@ export const ComplaintDetails = () => {
                 <Building size={18} />
                 <div>
                   <strong>Department:</strong>
-                  <p>{complaint.department}</p>
+                  <p>{getDepartmentLabel(complaint.department)}</p>
                 </div>
               </div>
             )}

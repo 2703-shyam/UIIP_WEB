@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
+import { FeedbackBanner } from '../../components/common/FeedbackBanner';
 import { ROLES } from '../../constants/roles';
 
 export const Register = () => {
@@ -66,7 +67,7 @@ export const Register = () => {
         <h2 className="auth-title">Create Account</h2>
         <p className="auth-subtitle">Create a citizen account to report and track local infrastructure issues.</p>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <FeedbackBanner tone="danger">{error}</FeedbackBanner>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <Input

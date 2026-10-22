@@ -18,10 +18,6 @@ export const API_ENDPOINTS = {
     BASE: '/notices',
     ACTIVE: '/notices'
   },
-  NOTIFICATIONS: {
-    BASE: '/notifications',
-    MARK_READ: (id) => `/notifications/${id}/read`
-  },
   ENGINEERS: {
     BASE: '/users/engineers',
     STATUS: (id) => `/users/engineers/${id}/status`

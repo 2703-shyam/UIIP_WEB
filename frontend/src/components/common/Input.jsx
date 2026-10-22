@@ -1,4 +1,5 @@
 import React from 'react';
+import { CircleAlert } from 'lucide-react';
 
 export const Input = ({
   label,
@@ -31,9 +32,11 @@ export const Input = ({
         placeholder={placeholder}
         disabled={disabled}
         className={`form-input ${error ? 'is-invalid' : ''}`}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={error ? `${id || name}-error` : undefined}
         {...props}
       />
-      {error && <p className="error-message">{error}</p>}
+      {error && <p className="error-message" id={`${id || name}-error`}><CircleAlert size={14} aria-hidden="true" />{error}</p>}
       {helperText && !error && <p className="helper-text">{helperText}</p>}
     </div>
   );

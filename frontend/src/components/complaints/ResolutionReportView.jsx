@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatDate';
 import { DEPARTMENTS } from '../../constants/departments';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const ResolutionReportView = ({ complaint }) => {
   const [lightboxImg, setLightboxImg] = useState(null);
@@ -63,7 +64,7 @@ export const ResolutionReportView = ({ complaint }) => {
           <Building size={18} className="meta-icon" />
           <div>
             <span className="meta-strip-label">Department:</span>
-            <strong className="meta-strip-val">{engineerDept}</strong>
+            <strong className="meta-strip-val">{getDepartmentLabel(engineerDept)}</strong>
           </div>
         </div>
 

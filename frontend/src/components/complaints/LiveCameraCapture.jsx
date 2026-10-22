@@ -10,6 +10,7 @@ import {
   Loader2,
   SwitchCamera
 } from 'lucide-react';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const LiveCameraCapture = ({
   onCapture,
@@ -296,7 +297,7 @@ export const LiveCameraCapture = ({
                 <div className="ai-result-item">
                   <span className="result-label">Suggested Department:</span>
                   <span className="result-value">
-                    {aiResult.suggestedDepartment || 'Municipal Review'}
+                    {getDepartmentLabel(aiResult.suggestedDepartment, 'Municipal Review')}
                   </span>
                 </div>
                 {aiResult.priority && (

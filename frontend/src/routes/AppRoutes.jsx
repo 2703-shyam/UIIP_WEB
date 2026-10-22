@@ -11,7 +11,6 @@ import { EngineerLayout } from '../layouts/EngineerLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
 
 // Public Pages
-import { Home } from '../pages/public/Home';
 import { About } from '../pages/public/About';
 import { Login } from '../pages/public/Login';
 import { Register } from '../pages/public/Register';
@@ -22,7 +21,6 @@ import { ReportIssue } from '../pages/citizen/ReportIssue';
 import { MyComplaints } from '../pages/citizen/MyComplaints';
 import { ComplaintDetails } from '../pages/citizen/ComplaintDetails';
 import { CitizenNotices } from '../pages/citizen/CitizenNotices';
-import { CitizenNotifications } from '../pages/citizen/CitizenNotifications';
 
 // Engineer Pages
 import { EngineerDashboard } from '../pages/engineer/EngineerDashboard';
@@ -30,7 +28,6 @@ import { EngineerComplaints } from '../pages/engineer/EngineerComplaints';
 import { EngineerComplaintDetails } from '../pages/engineer/EngineerComplaintDetails';
 import { ResolveComplaint } from '../pages/engineer/ResolveComplaint';
 import { EngineerHistory } from '../pages/engineer/EngineerHistory';
-import { EngineerNotifications } from '../pages/engineer/EngineerNotifications';
 
 // Admin Pages
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -47,8 +44,8 @@ export const AppRoutes = () => {
     <Routes>
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+        <Route path="/" element={<About />} />
+        <Route path="/about" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
@@ -63,7 +60,6 @@ export const AppRoutes = () => {
             <Route path="/citizen/complaints" element={<MyComplaints />} />
             <Route path="/citizen/complaints/:id" element={<ComplaintDetails />} />
             <Route path="/citizen/notices" element={<CitizenNotices />} />
-            <Route path="/citizen/notifications" element={<CitizenNotifications />} />
           </Route>
         </Route>
 
@@ -75,7 +71,6 @@ export const AppRoutes = () => {
             <Route path="/engineer/complaints/:id" element={<EngineerComplaintDetails />} />
             <Route path="/engineer/complaints/:id/resolve" element={<ResolveComplaint />} />
             <Route path="/engineer/history" element={<EngineerHistory />} />
-            <Route path="/engineer/notifications" element={<EngineerNotifications />} />
           </Route>
         </Route>
 
@@ -84,6 +79,7 @@ export const AppRoutes = () => {
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/complaints" element={<AdminComplaints />} />
+            <Route path="/admin/complaints/:id" element={<ComplaintDetails />} />
             <Route path="/admin/complaints/:id/verify" element={<VerifyComplaint />} />
             <Route path="/admin/assignments" element={<AdminComplaints />} />
             <Route path="/admin/map" element={<AdminMap />} />

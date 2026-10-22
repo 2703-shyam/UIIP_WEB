@@ -6,6 +6,8 @@ import { Loading } from '../../components/common/Loading';
 import { useToast } from '../../hooks/useToast';
 import { userService } from '../../services/userService';
 import { DEPARTMENTS } from '../../constants/departments';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
+import { FeedbackBanner } from '../../components/common/FeedbackBanner';
 
 const emptyForm = { name: '', email: '', phone: '', department: '', password: '' };
 
@@ -89,7 +91,7 @@ export const AdminEngineers = () => {
         <span className="badge badge-primary">{activeCount} active · {engineers.length} total</span>
       </div>
 
-      {error && <div className="alert alert-danger" role="alert">{error}</div>}
+      {error && <FeedbackBanner tone="danger">{error}</FeedbackBanner>}
 
       {issuedCredentials && (
         <section className="card" aria-live="polite">
@@ -122,7 +124,7 @@ export const AdminEngineers = () => {
               <label className="form-label" htmlFor="engineer-department">Department <span className="required-star">*</span></label>
               <select id="engineer-department" className="form-select" name="department" value={form.department} onChange={handleChange} required>
                 <option value="">Select department</option>
-                {DEPARTMENTS.map((department) => <option key={department} value={department}>{department}</option>)}
+                {DEPARTMENTS.map((department) => <option key={department} value={department}>{getDepartmentLabel(department)}</option>)}
               </select>
             </div>
           </div>
@@ -148,7 +150,7 @@ export const AdminEngineers = () => {
                   <tr key={engineer._id}>
                     <td>{engineer.name}</td>
                     <td>{engineer.email}</td>
-                    <td>{engineer.department || '—'}</td>
+                    <td>{getDepartmentLabel(engineer.department)}</td>
                     <td><span className={`badge ${engineer.isActive ? 'badge-success' : 'badge-secondary'}`}>{engineer.isActive ? 'Active' : 'Inactive'}</span></td>
                     <td>
                       <Button

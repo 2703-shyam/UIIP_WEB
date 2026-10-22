@@ -4,6 +4,7 @@ import { Select } from '../common/Select';
 import { Button } from '../common/Button';
 import { NOTICE_TYPES } from '../../constants/status';
 import { DEPARTMENTS } from '../../constants/departments';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const NoticeForm = ({ onSubmit, loading = false }) => {
   const [formData, setFormData] = useState({
@@ -50,7 +51,7 @@ export const NoticeForm = ({ onSubmit, loading = false }) => {
           name="department"
           value={formData.department}
           onChange={handleChange}
-          options={DEPARTMENTS}
+          options={DEPARTMENTS.map((value) => ({ value, label: getDepartmentLabel(value) }))}
           placeholder="Select a department"
         />
       </div>

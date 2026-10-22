@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatDate';
 import { aiService } from '../../services/aiService';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const EvidencePhotoViewer = ({ 
   images = [], 
@@ -229,7 +230,7 @@ export const EvidencePhotoViewer = ({
             {aiDetection.suggestedDepartment && (
               <div className="ai-meta-col">
                 <span className="meta-label">Routing Dept:</span>
-                <span className="meta-value">{aiDetection.suggestedDepartment}</span>
+                <span className="meta-value">{getDepartmentLabel(aiDetection.suggestedDepartment)}</span>
               </div>
             )}
             {aiDetection.priority && (

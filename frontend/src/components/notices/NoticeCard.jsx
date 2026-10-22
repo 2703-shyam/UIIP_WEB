@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatDate } from '../../utils/formatDate';
 import { Megaphone, Calendar, MapPin, AlertTriangle } from 'lucide-react';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const NoticeCard = ({ notice }) => {
   return (
@@ -18,7 +19,7 @@ export const NoticeCard = ({ notice }) => {
       <div className="notice-details">
         {notice.department && (
           <div className="detail-item">
-            <strong>Department:</strong> {notice.department}
+            <strong>Department:</strong> {getDepartmentLabel(notice.department)}
           </div>
         )}
         {notice.affectedArea && (

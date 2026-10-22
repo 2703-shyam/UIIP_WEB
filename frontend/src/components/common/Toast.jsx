@@ -23,12 +23,14 @@ export const ToastContainer = () => {
   return (
     <div className="toast-container">
       {toasts.map((toast) => (
-        <div key={toast.id} className={`toast toast-${toast.type}`}>
-          <span className="toast-icon">{getIcon(toast.type)}</span>
+        <div key={toast.id} className={`toast toast-${toast.type}`} role={toast.type === 'error' ? 'alert' : 'status'}>
+          <span className="toast-icon" aria-hidden="true">{getIcon(toast.type)}</span>
           <span className="toast-message">{toast.message}</span>
-          <button className="toast-close" onClick={() => removeToast(toast.id)}>
-            <X size={16} />
-          </button>
+          {toast.type === 'error' && (
+            <button className="toast-close" onClick={() => removeToast(toast.id)} aria-label="Dismiss error">
+              <X size={16} />
+            </button>
+          )}
         </div>
       ))}
     </div>

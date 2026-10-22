@@ -12,7 +12,7 @@ export const RoleRoute = ({ allowedRoles = [] }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ reauthenticationRequired: true }} />;
   }
 
   if (!allowedRoles.includes(role)) {

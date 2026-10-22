@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   PlusCircle,
   FileText,
-  Bell,
   CheckSquare,
   History,
   MapPin,
@@ -30,11 +29,8 @@ export const Sidebar = () => {
             ]
           },
           {
-            category: 'Community & Alerts',
-            items: [
-              { to: '/citizen/notices', label: 'Public Notices', icon: Megaphone },
-              { to: '/citizen/notifications', label: 'Notifications', icon: Bell }
-            ]
+            category: 'Community',
+            items: [{ to: '/citizen/notices', label: 'Public Notices', icon: Megaphone }]
           }
         ];
 
@@ -48,10 +44,6 @@ export const Sidebar = () => {
               { to: '/engineer/history', label: 'Work History', icon: History }
             ]
           },
-          {
-            category: 'Communication',
-            items: [{ to: '/engineer/notifications', label: 'Notifications', icon: Bell }]
-          }
         ];
 
       case ROLES.ADMIN:
@@ -79,8 +71,8 @@ export const Sidebar = () => {
   const sections = getNavSections();
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-nav">
+    <aside className="sidebar" aria-label="Workspace navigation">
+      <nav className="sidebar-nav" aria-label="Workspace">
         {sections.map((section, idx) => (
           <div key={idx} className="sidebar-group">
             <div className="sidebar-category">{section.category}</div>
@@ -101,7 +93,7 @@ export const Sidebar = () => {
             })}
           </div>
         ))}
-      </div>
+      </nav>
     </aside>
   );
 };

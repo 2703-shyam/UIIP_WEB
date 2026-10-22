@@ -10,5 +10,5 @@ export const ProtectedRoute = () => {
     return <Loading fullScreen message="Checking authentication..." />;
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ reauthenticationRequired: true }} />;
 };

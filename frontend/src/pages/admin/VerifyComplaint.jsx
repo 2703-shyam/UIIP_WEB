@@ -13,6 +13,7 @@ import { EvidencePhotoViewer } from '../../components/complaints/EvidencePhotoVi
 import { ResolutionReportView } from '../../components/complaints/ResolutionReportView';
 import { PRIORITY_LEVELS, SEVERITY_LEVELS } from '../../constants/priority';
 import { DEPARTMENTS, normalizeDepartment } from '../../constants/departments';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const VerifyComplaint = () => {
   const { id } = useParams();
@@ -165,7 +166,7 @@ export const VerifyComplaint = () => {
             name="department"
             value={formData.department}
             onChange={handleChange}
-            options={DEPARTMENTS}
+            options={DEPARTMENTS.map((value) => ({ value, label: getDepartmentLabel(value) }))}
             required
           />
 
@@ -177,12 +178,12 @@ export const VerifyComplaint = () => {
             placeholder="Select available engineer..."
             options={engineers.map((eng) => ({
               value: eng._id || eng.id,
-              label: `${eng.name} (${eng.department || 'Field'})`
+              label: `${eng.name} (${getDepartmentLabel(eng.department, 'Field')})`
             }))}
           />
           {engineers.length === 0 && (
             <p className="helper-text">
-              No active engineers are assigned to {formData.department}. Add or activate an engineer for this department in Engineer Management.
+              No active engineers are assigned to {getDepartmentLabel(formData.department)}. Add or activate an engineer for this department in Engineer Management.
             </p>
           )}
 

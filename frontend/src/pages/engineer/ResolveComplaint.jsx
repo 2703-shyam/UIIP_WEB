@@ -100,7 +100,7 @@ export const ResolveComplaint = () => {
       <button 
         type="button" 
         className="back-link btn-link" 
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(`/engineer/complaints/${id}`)}
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
         <ArrowLeft size={16} /> Back to Work Order
@@ -196,7 +196,7 @@ export const ResolveComplaint = () => {
           <Button type="submit" variant="success" loading={loading} size="large">
             <CheckCircle size={18} /> Submit Official Resolution Report
           </Button>
-          <Button variant="outline" onClick={() => navigate(-1)} disabled={loading}>
+          <Button variant="outline" onClick={() => navigate(`/engineer/complaints/${id}`)} disabled={loading}>
             Cancel
           </Button>
         </div>

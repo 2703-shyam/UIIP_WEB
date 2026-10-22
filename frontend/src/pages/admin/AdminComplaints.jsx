@@ -7,6 +7,7 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { Input } from '../../components/common/Input';
 import { Select } from '../../components/common/Select';
 import { COMPLAINT_STATUS } from '../../constants/status';
+import { getDepartmentLabel } from '../../constants/departmentLabels';
 
 export const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -89,7 +90,7 @@ export const AdminComplaints = () => {
                   <td>#{id.substring(0, 8)}</td>
                   <td>
                     {photoSrc ? (
-                      <Link to={`/citizen/complaints/${id}`} className="table-thumb-link" title="Click to inspect photo">
+                      <Link to={`/admin/complaints/${id}`} className="table-thumb-link" title="Inspect complaint">
                         <img src={photoSrc} alt="Defect" className="table-thumb-img" />
                         {isLive && <span className="table-thumb-badge" title="Authentic Live Camera Capture">✓</span>}
                       </Link>
@@ -109,7 +110,7 @@ export const AdminComplaints = () => {
                   <td>
                     {c.priority ? <StatusBadge status={c.priority} type="priority" /> : 'Unassigned'}
                   </td>
-                  <td>{c.department || 'N/A'}</td>
+                  <td>{getDepartmentLabel(c.department, 'N/A')}</td>
                   <td className="actions-cell">
                     {c.status === 'Submitted' && (
                       <Link to={`/admin/complaints/${id}/verify`} className="btn btn-sm btn-primary">
@@ -121,7 +122,7 @@ export const AdminComplaints = () => {
                         Assign Engineer
                       </Link>
                     )}
-                    <Link to={`/citizen/complaints/${id}`} className="btn btn-sm btn-outline">
+                    <Link to={`/admin/complaints/${id}`} className="btn btn-sm btn-outline">
                       {c.status === 'Resolved' ? 'View Report' : 'Inspect'}
                     </Link>
                   </td>
