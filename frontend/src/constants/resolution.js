@@ -1,0 +1,2 @@
+export const RESOLUTION_MAX_DISTANCE_M = 50;
+export const RESOLUTION_MAX_ACCURACY_M = 100;

@@ -2,6 +2,8 @@ const Complaint = require('../models/Complaint');
 const StatusHistory = require('../models/StatusHistory');
 const cloudinary = require('../config/cloudinary');
 const { DEPARTMENTS } = require('../constants/departments');
+const Notification = require('../models/Notification');
+const { validateResolutionCaptures } = require('../utils/validateResolutionCaptures');
 
 const uploadImages = (files = []) => Promise.all(files.map((file) => new Promise((resolve) => {
   // If Cloudinary credentials are not provided in environment, fall back to base64 data URI
@@ -193,20 +195,34 @@ const resolveComplaint = async (req, res, next) => {
       throw new Error('Not assigned to this complaint');
     }
 
-    const previousStatus = complaint.status;
-    let resolutionImages = await uploadImages(req.files);
-    if ((!resolutionImages || resolutionImages.length === 0) && req.body.resolutionImagesBase64) {
-      const b64 = req.body.resolutionImagesBase64;
-      resolutionImages = Array.isArray(b64) ? b64 : [b64];
-    } else if ((!resolutionImages || resolutionImages.length === 0) && req.body.resolutionImages) {
-      const bImgs = req.body.resolutionImages;
-      resolutionImages = Array.isArray(bImgs) ? bImgs : [bImgs];
+    if (!['Assigned', 'In Progress'].includes(complaint.status)) {
+      res.status(400);
+      throw new Error('Only Assigned or In Progress complaints can be resolved.');
     }
+    if (!Array.isArray(req.files) || req.files.length < 1) {
+      res.status(400);
+      throw new Error('At least one live resolution photo is required.');
+    }
+    const captureValidation = validateResolutionCaptures({
+      captureMeta: req.body.captureMeta,
+      fileCount: req.files.length,
+      issueLocation: complaint.location
+    });
+    if (captureValidation.error) {
+      res.status(captureValidation.status || 400);
+      throw new Error(captureValidation.error);
+    }
+
+    const previousStatus = complaint.status;
+    const resolutionImages = await uploadImages(req.files);
 
     complaint.status = 'Resolved';
     complaint.resolutionDetails = req.body.resolutionDetails;
     complaint.resolutionImages = resolutionImages;
     complaint.resolvedAt = Date.now();
+    complaint.resolutionCaptures = captureValidation.captures;
+    complaint.resolutionLocationCheck = captureValidation.locationCheck;
+    complaint.resolutionSubmittedAt = Date.now();
     await complaint.save();
     await StatusHistory.create({
       complaintId: complaint._id,
@@ -214,6 +230,13 @@ const resolveComplaint = async (req, res, next) => {
       newStatus: 'Resolved',
       changedBy: req.user._id,
       comment: req.body.resolutionDetails || 'Complaint resolved'
+    });
+    await Notification.create({
+      recipientId: complaint.citizenId,
+      type: 'complaint_resolved',
+      title: 'Complaint resolved',
+      message: `Your complaint ${complaint.complaintId} has been resolved.`,
+      complaintId: complaint._id
     });
     res.json({ success: true, message: 'Complaint resolved', data: complaint });
   } catch (error) { next(error); }

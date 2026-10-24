@@ -11,13 +11,17 @@ import {
   SwitchCamera
 } from 'lucide-react';
 import { getDepartmentLabel } from '../../constants/departmentLabels';
+import { RESOLUTION_MAX_ACCURACY_M } from '../../constants/resolution';
 
 export const LiveCameraCapture = ({
   onCapture,
   onClear,
   capturedPhoto,
   isAnalyzing = false,
-  aiResult = null
+  aiResult = null,
+  allowNativeFallback = true,
+  showAiPanel = true,
+  captureLocation = false
 }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -57,8 +61,10 @@ export const LiveCameraCapture = ({
     // Browsers block getUserMedia on HTTP LAN addresses. The native file input
     // can still ask mobile browsers to open the device camera in that context.
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-      setCameraError('This HTTP page cannot show a live camera preview. Opening your device camera instead.');
-      fileInputRef.current?.click();
+      setCameraError(allowNativeFallback
+        ? 'This HTTP page cannot show a live camera preview. Opening your device camera instead.'
+        : 'Live camera capture requires a secure page and a supported camera.');
+      if (allowNativeFallback) fileInputRef.current?.click();
       return;
     }
 
@@ -79,7 +85,9 @@ export const LiveCameraCapture = ({
     } catch (err) {
       console.warn('Camera access failed:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setCameraError('Camera permission was denied. Please allow camera permissions in your browser or use the device camera button below.');
+        setCameraError(allowNativeFallback
+          ? 'Camera permission was denied. Please allow camera permissions in your browser or use the device camera button below.'
+          : 'Camera permission was denied. Allow camera access in your browser settings, then try again.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         setCameraError('No camera found on this device. Please connect a webcam or use a mobile device.');
       } else {
@@ -87,7 +95,7 @@ export const LiveCameraCapture = ({
       }
       setCameraActive(false);
     }
-  }, [facingMode, stopCamera]);
+  }, [allowNativeFallback, facingMode, stopCamera]);
 
   // The video element is rendered only after cameraActive becomes true. Attach
   // the stream after that render, otherwise the stream can be lost on startup.
@@ -132,12 +140,36 @@ export const LiveCameraCapture = ({
   }, [facingMode]);
 
   // Capture frame from live video feed
-  const handleSnap = () => {
+  const handleSnap = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
       setCameraError('Camera is still starting. Wait for the live preview, then capture again.');
       return;
+    }
+
+    let locationMeta = {};
+    if (captureLocation) {
+      try {
+        if (!navigator.geolocation) throw new Error('Location is unavailable on this device.');
+        const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true, timeout: 20000, maximumAge: 0
+        }));
+        const { latitude: lat, longitude: lng, accuracy } = position.coords;
+        if (accuracy > RESOLUTION_MAX_ACCURACY_M) {
+          setCameraError(`Location accuracy is ${Math.round(accuracy)} m. Wait for a better GPS fix (within ${RESOLUTION_MAX_ACCURACY_M} m) and retake the photo.`);
+          return;
+        }
+        locationMeta = { lat, lng, accuracy };
+      } catch (error) {
+        const locationErrors = {
+          1: 'Location permission was denied. A photo without a location fix cannot be used.',
+          2: 'Unable to acquire a location fix. A photo without a location fix cannot be used.',
+          3: 'Location request timed out. Try again when GPS reception is better.'
+        };
+        setCameraError(locationErrors[error.code] || error.message || 'Could not get your location. A photo without a location fix cannot be used.');
+        return;
+      }
     }
 
     // Flash animation
@@ -184,7 +216,8 @@ export const LiveCameraCapture = ({
         onCapture(file, previewUrl, {
           isLiveCaptured: true,
           capturedAt: now.toISOString(),
-          dataUrl
+          dataUrl,
+          ...locationMeta
         });
       },
       'image/jpeg',
@@ -226,21 +259,21 @@ export const LiveCameraCapture = ({
           <ShieldCheck size={20} className="shield-icon" />
           <div>
             <strong>Authentic Live Camera Verification</strong>
-            <p>Live photo capture verifies genuine on-site civic issues and enables instant AI diagnosis.</p>
+            <p>{showAiPanel ? 'Live photo capture verifies genuine on-site civic issues and enables instant AI diagnosis.' : 'Capture a live photo at the complaint location. A precise GPS fix is required.'}</p>
           </div>
         </div>
         <span className="live-badge">LIVE ONLY</span>
       </div>
 
       {/* Hidden file input for native camera fallback */}
-      <input
+      {allowNativeFallback && <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         capture="environment"
         onChange={handleNativeCameraFallback}
         style={{ display: 'none' }}
-      />
+      />}
 
       {/* Captured Photo State */}
       {capturedPhoto ? (
@@ -258,7 +291,7 @@ export const LiveCameraCapture = ({
             </div>
 
             {/* AI Analyzing Overlay */}
-            {isAnalyzing && (
+            {showAiPanel && isAnalyzing && (
               <div className="ai-scanning-overlay">
                 <div className="ai-scanning-pulse"></div>
                 <div className="ai-scanning-content">
@@ -271,7 +304,7 @@ export const LiveCameraCapture = ({
           </div>
 
           {/* AI Result Card */}
-          {aiResult && !isAnalyzing && (
+          {showAiPanel && aiResult && !isAnalyzing && (
             <div className="ai-detection-result-card">
               <div className="ai-result-header">
                 <div className="ai-result-title">
@@ -341,7 +374,7 @@ export const LiveCameraCapture = ({
               <div className="viewfinder-center-reticle"></div>
             </div>
             <p className="viewfinder-instruction">
-              Center the pothole, garbage, or civic damage in the frame
+              {showAiPanel ? 'Center the pothole, garbage, or civic damage in the frame' : 'Frame the completed repair, then capture on site'}
             </p>
           </div>
 
@@ -398,7 +431,7 @@ export const LiveCameraCapture = ({
               </div>
               <h3>Capture Live On-Site Photo</h3>
               <p>
-                To prevent false or outdated reports, photos must be taken live using your device's camera. Our AI model will immediately analyze the photo and categorize the issue.
+              {showAiPanel ? "To prevent false or outdated reports, photos must be taken live using your device's camera. Our AI model will immediately analyze the photo and categorize the issue." : 'Resolution evidence must be captured live on site with a current GPS fix.'}
               </p>
             </div>
           )}
@@ -412,14 +445,14 @@ export const LiveCameraCapture = ({
               <Camera size={18} /> Open Live Camera
             </button>
 
-            <button
+            {allowNativeFallback && <button
               type="button"
               className="btn btn-outline"
               onClick={() => fileInputRef.current?.click()}
               title="Capture using your device's native camera app"
             >
               Device Camera Fallback
-            </button>
+            </button>}
           </div>
         </div>
       )}

@@ -12,6 +12,16 @@ const complaintSchema = new mongoose.Schema({
   },
   resolutionDetails: { type: String },
   resolutionImages: [{ type: String }],
+  resolutionCaptures: [{
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+    accuracy: { type: Number, required: true },
+    distanceFromIssueM: { type: Number },
+    capturedAt: { type: Date, required: true },
+    source: { type: String, enum: ['live', 'device'], default: 'live' }
+  }],
+  resolutionLocationCheck: { type: String },
+  resolutionSubmittedAt: { type: Date },
   resolvedAt: { type: Date },
   severity: { type: String },
   priority: { type: String },

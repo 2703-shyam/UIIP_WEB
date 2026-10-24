@@ -165,6 +165,9 @@ export const ResolutionReportView = ({ complaint }) => {
             </div>
             <div className="comparison-caption">
               <strong>Status:</strong> 100% Repaired & Reopened for Public Use
+              {complaint.resolutionCaptures?.[0]?.distanceFromIssueM != null && (
+                <div>{complaint.resolutionCaptures[0].source === 'device' ? 'Uploaded on-site' : 'Captured on-site'}, {Math.round(complaint.resolutionCaptures[0].distanceFromIssueM)} m from issue location</div>
+              )}
             </div>
           </div>
         </div>
